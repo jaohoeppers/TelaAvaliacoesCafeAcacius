@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/avaliacao.css">
+    </head>
+    <body>
+        <main class="page_main">
+            <header class="page_header">
+                <h1 id="nome_sala"></h1>
+                <p class="aviso" id="aviso">Deixe sua avaliação, isso nos ajuda a melhorar.</p>
+            </header>
+
+            <section id="iniciar">
+                <p>Para iniciar a avaliação, clique no botão abaixo:</p>
+                <br>
+                <button class="btn_enviar" onclick="gerar_tela_perguntas()">Iniciar Avaliação</button>
+            </section>
+
+            <section class="avaliacao" style="display: none;">
+                <form id="form_avaliacao" class="form_avaliacao">
+                    <div id="perguntas">
+                    </div>
+                    <div class="form_botao">
+                        <button onclick="salvar_respostas()" type="button" class="btn_enviar">Enviar avaliação</button>
+                    </div>
+                </form>
+
+                <div id="msg" class="message" role="status" aria-live="polite"></div>
+            </section>
+
+            <footer class="page_footer">
+                <small>Obrigado por ajudar a melhorar o espaço.</small>
+            </footer>
+        </main>
+
+        <script src="../public/js/script.js"></script>
+    </body>
+</html>
