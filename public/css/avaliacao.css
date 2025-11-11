@@ -1,5 +1,3 @@
-
-
 :root {
     --primary-color: #6f4e37;
     --secondary-color: #f4a460; 
@@ -182,5 +180,83 @@ body {
     margin-top: 1.5rem;
     font-style: italic;
     font-size: 0.9rem;
+    color: #777;
+}
+
+/* Estilos para a tela de carregamento */
+.loading_overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+
+.spinner {
+    border: 8px solid #f3f3f3; /* Cinza claro */
+    border-top: 8px solid var(--primary-color); /* Cor do café */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading_overlay p {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Estilos para o campo de feedback */
+.feedback_field {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    text-align: left;
+}
+
+.feedback_field label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.feedback_field textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.feedback_field textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(111, 78, 55, 0.3);
+}
+
+.feedback_field .hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
     color: #777;
 }

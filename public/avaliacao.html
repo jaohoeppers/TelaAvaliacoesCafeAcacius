@@ -25,6 +25,11 @@
                 <form id="form_avaliacao" class="form_avaliacao">
                     <div id="perguntas">
                     </div>
+                    <div class="feedback_field">
+                        <label for="feedback">Feedback (opcional)</label>
+                        <textarea id="feedback" name="feedback" rows="4" placeholder="Escreva aqui seu feedback..." maxlength="1000" aria-describedby="feedback_help"></textarea>
+                        <small id="feedback_help" class="hint">Seu comentário nos ajuda a melhorar. Máx. 1000 caracteres.</small>
+                    </div>
                     <div class="form_botao">
                         <button onclick="salvar_respostas()" type="button" class="btn_enviar">Enviar avaliação</button>
                     </div>
@@ -34,6 +39,7 @@
             </section>
 
             <footer class="page_footer">
+                <small>Sua avaliação espontânea é anônima, nenhuma informação pessoal é solicitada ou armazenada.</small>
                 <small>Obrigado por ajudar a melhorar o espaço.</small>
             </footer>
         </main>

@@ -119,11 +119,16 @@ function rolagemSuave(elemento, duracao) {
 }
 
 // Salvar avaliações no BD
-function salvar_respostas() {
+async function salvar_respostas() {
+    const idGerado = Date.now();
     const jsonRespostas = [];
     const respostas = document.forms['form_avaliacao'].querySelectorAll('.pergunta');
+    const feedbackDescricao = document.getElementById('feedback').value.trim();
     const salaId = getCookie('sala_id');
     let todasRespondidas = true;
+
+    // Chama a tela de carregamento
+    mostrarEnviandoRespostas();
 
     // Ver se todas as perguntas foram respondidas
     respostas.forEach(resposta => {
@@ -138,6 +143,7 @@ function salvar_respostas() {
     });
 
     if (!todasRespondidas) {
+        esconderEnviandoRespostas(); // Esconde o carregamento se a validação falhar
         alert('Por favor, responda todas as perguntas antes de salvar.');
         // Rola para a primeira pergunta não respondida
         const firstError = document.querySelector('.pergunta.error');
@@ -154,20 +160,51 @@ function salvar_respostas() {
                 pergunta_id: Number(notaSelecionada.name),
                 sala_id: Number(salaId),
                 nota: Number(notaSelecionada.value),
-                data_hora: new Date().toISOString()
+                data_hora: new Date().toISOString(),
+                id_respostas: idGerado
             });
         };
     });
+    var statusRespostas = "";
+    var statusFeedback = "";
 
-    fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=salvar_respostas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(jsonRespostas)
-    })
-    .then(response => response.json())
-    .then(result => {
-        agradecimento();
-    });
+    try {
+        await fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=salvar_respostas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(jsonRespostas)
+        }).then(response => response.status === 200 ? statusRespostas = response.json() : null);
+
+        if (feedbackDescricao != "") {
+            await fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=salvar_feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ descricao: feedbackDescricao, id_respostas: idGerado })
+            }).then(response => response.status === 200 ? statusFeedback = response.json() : null);
+
+            if (statusRespostas && statusFeedback) {
+                esconderEnviandoRespostas(); // Esconde o carregamento antes de mostrar o agradecimento
+                agradecimento();
+            } else {
+                esconderEnviandoRespostas(); // Esconde o carregamento em caso de erro
+                alert('Houve um erro ao salvar suas respostas. Por favor, tente novamente.');
+            }
+        }
+
+        if (statusRespostas) {
+            esconderEnviandoRespostas(); // Esconde o carregamento antes de mostrar o agradecimento
+            agradecimento();
+        } else {
+            esconderEnviandoRespostas(); // Esconde o carregamento em caso de erro
+            alert('Houve um erro ao salvar suas respostas. Por favor, tente novamente.');
+        }
+    } catch (error) {
+        esconderEnviandoRespostas(); // Esconde o carregamento em caso de erro
+        console.error('Erro na requisição fetch:', error);
+        alert('Houve um erro de comunicação com o servidor. Por favor, tente novamente.');
+    } finally {
+        esconderEnviandoRespostas(); // Esconde o carregamento em qualquer caso (sucesso ou erro)
+    }
 }
 
 function agradecimento(){
@@ -255,7 +292,45 @@ function agradecimento(){
         }
     }, stepMs);
 
-    voltarBtn.addEventListener('click', () => window.location.href = 'avaliacao.html');}
+    voltarBtn.addEventListener('click', () => window.location.href = 'avaliacao.html');
+}
+
+function mostrarEnviandoRespostas() {
+    // Evita criar múltiplos overlays
+    if (document.getElementById('enviando_respostas_overlay')) return;
+
+    // Cria o elemento de overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'enviando_respostas_overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        inset: '0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.7)',
+        zIndex: '99999',
+        padding: '20px',
+        backdropFilter: 'blur(4px)'
+    });
+
+    // HTML interno com o spinner e o texto
+    overlay.innerHTML = `
+        <div class="spinner" style="border: 8px solid #f3f3f3; border-top: 8px solid #6f4e37; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+        <p style="color: #fff; font-size: 1.2rem; font-weight: bold;">Enviando Respostas...</p>
+    `;
+
+    // Adiciona o overlay ao corpo do documento
+    document.body.appendChild(overlay);
+}
+
+function esconderEnviandoRespostas() {
+    const overlay = document.getElementById('enviando_respostas_overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
 
 //Busca o valor de um cookie pelo nome
 function getCookie(name) {

@@ -33,16 +33,18 @@ try {
                 exit;
             }
 
+            // Envia os dados coletados das respostas para o banco
             try {
                 $conexao->beginTransaction();
-                $insert = $conexao->prepare('INSERT INTO respostas (pergunta_id, sala_id, nota, data_hora) VALUES (:pergunta_id, :sala_id, :nota, :data_hora)');
+                $insert = $conexao->prepare('INSERT INTO respostas (pergunta_id, sala_id, nota, data_hora, id_respostas) VALUES (:pergunta_id, :sala_id, :nota, :data_hora, :id_respostas)');
                 foreach ($data as $resposta) {
                     // Validações simples
                     $pid = isset($resposta['pergunta_id']) ? (int) $resposta['pergunta_id'] : null;
                     $sid = isset($resposta['sala_id']) ? (int) $resposta['sala_id'] : null;
                     $nota = isset($resposta['nota']) ? (int) $resposta['nota'] : null;
                     $data_hora = isset($resposta['data_hora']) ? $resposta['data_hora'] : null;
-                    if (!$pid || !$sid || !$nota || !$data_hora) {
+                    $id_respostas = isset($resposta['id_respostas']) ? $resposta['id_respostas'] : null;
+                    if (!$pid || !$sid || !$nota || !$data_hora || !$id_respostas) {
                         // rollback e erro
                         $conexao->rollBack();
                         http_response_code(400);
@@ -50,7 +52,7 @@ try {
                         exit;
                     }
                     try{
-                        $insert->execute([':pergunta_id' => $pid, ':sala_id' => $sid, ':nota' => $nota, ':data_hora' => $data_hora]);
+                        $insert->execute([':pergunta_id' => $pid, ':sala_id' => $sid, ':nota' => $nota, ':data_hora' => $data_hora, ':id_respostas' => $id_respostas]);
                     } catch (Exception $e){
                         $conexao->rollBack();
                         http_response_code(500);
@@ -65,6 +67,35 @@ try {
                 http_response_code(500);
                 echo json_encode(['error' => 'Erro ao salvar respostas: ' . $e->getMessage()]);
             }
+
+            break;
+
+        case 'salvar_feedback':
+            $raw = file_get_contents('php://input');
+            $data = json_decode($raw, true);
+            if (!is_array($data)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Dados inválidos']);
+                exit;
+            }
+
+            $descricao = isset($data['descricao']) ? trim($data['descricao']) : '';
+            $id_respostas = isset($data['id_respostas']) ? $data['id_respostas'] : '';
+
+                $conexao->beginTransaction();
+                $insert = $conexao->prepare('INSERT INTO feedback (descricao, id_respostas) VALUES (:descricao, :id_respostas)');
+                
+            try{
+                $insert->execute([':descricao' => $descricao, ':id_respostas' => $id_respostas]);
+            } catch (Exception $e){
+                $conexao->rollBack();
+                http_response_code(500);
+                echo json_encode(['error' => 'Erro ao salvar feedback: ' . $e->getMessage(), 'item' => $feedback]);
+                exit;
+            }
+            
+            // $conexao->commit();
+            echo json_encode(['success' => true]);
             break;
 
         default:
