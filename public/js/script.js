@@ -246,7 +246,7 @@ function agradecimento(){
             <p class="agradecimento_aviso">Muito obrigado por sua avaliação!</p>
         </header>
         <section class="agradecimento_section">
-            <p>O café Acacius agradece por sua avaliação!</p>
+            <p>O Café Acacius agradece por sua avaliação!</p>
             <p>Sua avaliação nos ajuda a sempre buscar por melhorias para oferecer a melhor experiência possível.</p>
         </section>
         <div id="countdown_container">

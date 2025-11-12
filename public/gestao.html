@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/gestao.css">
+    </head>
+    <body>
+        <main class="page_main">
+            <header class="page_header">
+                <h1>Gestão de Avaliações</h1>
+            </header>
+
+            <section id="login_section">
+                <h2>Login de Administrador</h2>
+                <div class="login_field">
+                    <label for="admin_password">Senha:</label>
+                    <input type="password" id="admin_password" name="admin_password" aria-describedby="password_help">
+                    <small id="password_help" class="hint">Insira a senha de administrador para acessar as avaliações.</small>
+                </div>
+                <button class="btn_enviar" onclick="validar_senha()">Entrar</button>
+                <div id="login_msg" class="message" role="status" aria-live="polite"></div>
+            </section>
+
+            <section id="gestao_section" style="display: none;">
+                <!-- Conteúdo de gestão será carregado aqui após o login -->
+            </section>
+
+            <footer class="page_footer">
+                <small>Área restrita para administradores.</small>
+            </footer>
+
+        <script src="../public/js/scriptADM.js"></script>
+    </body>
+</html>

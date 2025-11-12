@@ -1,0 +1,262 @@
+/* CSS para progAvaliacoesCafe/public/css/gestao.css */
+
+:root {
+    --primary-color: #6f4e37; /* Cor de café */
+    --secondary-color: #f4a460; /* Laranja/Madeira claro */
+    --background-color: #f5f5dc; /* Bege */
+    --text-color: #333;
+    --white: #fff;
+    --error-color: #d9534f;
+    --border-color: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.page_main {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page_header h1 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Estilos da seção de login */
+#login_section {
+    max-width: 400px;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+#login_section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.login_field {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.login_field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.login_field input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.login_field .hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.btn_enviar {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 12px 25px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.btn_enviar:hover {
+    background-color: #5a3f2e;
+}
+
+.message {
+    margin-top: 1rem;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+/* Estilos para a seção de gestão */
+#gestao_section {
+    margin-top: 2rem;
+}
+
+#gestao_section h2 {
+    color: var(--primary-color);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+/* Estilos para a tabela de gestão */
+.tabela-gestao {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.tabela-gestao th, .tabela-gestao td {
+    border: 1px solid var(--border-color);
+    padding: 12px 8px;
+    text-align: left;
+}
+
+.tabela-gestao th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: bold;
+}
+
+.tabela-gestao tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.tabela-gestao tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* Estilos para a paginação */
+.paginacao {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.paginacao button {
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.paginacao button:hover:not(:disabled) {
+    background-color: #d98c4a;
+}
+
+.paginacao button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background-color: #ccc;
+}
+
+.paginacao span {
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Estilos para o accordion de perguntas */
+.accordion-perguntas {
+    margin-top: 20px;
+}
+
+.accordion-item {
+    border: 1px solid var(--border-color);
+    margin-bottom: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.accordion-header {
+    background-color: #f8f8f8;
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.accordion-header:hover {
+    background-color: var(--secondary-color);
+    color: var(--white);
+}
+
+.pergunta-texto {
+    font-weight: bold;
+    flex: 1;
+}
+
+.arrow {
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform 0.3s;
+    margin-left: 10px;
+}
+
+.accordion-content {
+    padding: 20px;
+    background-color: var(--white);
+    border-top: 1px solid var(--border-color);
+}
+
+#painelPerguntas h2,
+#painelRespostas h2 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+/* Footer */
+.page_footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #777;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .page_main {
+        padding: 1rem;
+    }
+
+    .tabela-gestao {
+        font-size: 0.85rem;
+    }
+
+    .tabela-gestao th, .tabela-gestao td {
+        padding: 8px 5px;
+    }
+
+    .paginacao {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

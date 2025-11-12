@@ -6,6 +6,21 @@ $action = $_GET['action'] ?? '';
 
 try {
     switch ($action) {
+        case 'valida_senha':
+            $senha = $_GET['senha'] ?? '';
+            if ($senha === $senhaAdmin) {
+                echo json_encode(['valid' => true]);
+            } else {
+                echo json_encode(['valid' => false]);
+            }
+            break;
+
+        case 'get_respostas':
+            $stmt = $conexao->query('SELECT * FROM respostas ORDER BY data_hora DESC');
+            $respostas = $stmt->fetchAll();
+            echo json_encode($respostas);
+            break;
+
         case 'get_salas':
             $stmt = $conexao->query('SELECT id, descricao FROM salas ORDER BY descricao');
             $salas = $stmt->fetchAll();
@@ -22,6 +37,24 @@ try {
             $stmt->execute([':sala_id' => $salaId]);
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
+            break;
+
+        case 'get_todas_perguntas':
+            $stmt = $conexao->query('SELECT id, descricao, sala_id FROM perguntas ORDER BY sala_id, id');
+            $perguntas = $stmt->fetchAll();
+            echo json_encode($perguntas);
+            break;
+
+        case 'get_respostas_por_pergunta':
+            $perguntaId = isset($_GET['pergunta_id']) ? (int) $_GET['pergunta_id'] : 0;
+            if ($perguntaId <= 0) {
+                echo json_encode([]);
+                exit;
+            }
+            $stmt = $conexao->prepare('SELECT id, sala_id, nota, data_hora FROM respostas WHERE pergunta_id = :pergunta_id ORDER BY data_hora DESC');
+            $stmt->execute([':pergunta_id' => $perguntaId]);
+            $respostas = $stmt->fetchAll();
+            echo json_encode($respostas);
             break;
         
         case 'salvar_respostas':
