@@ -1,0 +1,25 @@
+Aba lateral com as partes dos relatórios,
+	Aba salas
+		Mostrar botões com as salas, ao clicar em uma das salas precisa gerar a tela conforme o id da sala selecionada.
+			Deve ter um filtro de data inicial e final para filtrar as perguntas de determinado período
+			Deve ter um painel com uma grade de todas as perguntas da sala
+				ao clicar em uma pergunta precisa abrir um overlay com um botão de editar, para editar a pergunta e um botão de exclusão, para excluir a pergunta.
+				Deve ter um botão de "+" para criar uma pergunta nova para aquela sala.
+			deve ter outro painel do mesmo jeito do painel superior porem ao clicar na pergunta ele mostra as respostas para a pergunta, com um gráfico de pizza colorido mostrando as notas mais escolhidas.
+			deve ter um painel mostrando todas as avaliações, como avaliação 1, avaliação 2...
+				Essas avaliações devem ser separadas por cor conforme a media de nota dela
+				Ao entrar em uma das avaliações deve mostrar a media das notas dela.
+				Deve ter um botão para conseguir visualizar todas as respostas de todas as perguntas
+				Deve ter um campo mostrando o feedback da avaliação se tiver
+	Aba geral
+		Na aba geral deve ter os filtros gerais do sistema
+			deve ter um filtro de data inicial e final para filtrar as perguntas de determinado período
+			Uma media de nota por sala
+			Avaliações por sala
+			Avaliações com feedback
+
+			
+	
+Ao responder a ultima pergunta deve direcionar para o campo de feedback		
+
+Usar framework para gerar os graficos

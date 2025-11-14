@@ -12,6 +12,10 @@
         <main class="page_main">
             <header class="page_header">
                 <h1>Gestão de Avaliações</h1>
+                <button id="btn_logout" class="btn-logout" onclick="logout()" style="display: none;">
+                    <span class="logout-icon">🚪</span>
+                    <span class="logout-text">Sair</span>
+                </button>
             </header>
 
             <section id="login_section">
@@ -26,13 +30,29 @@
             </section>
 
             <section id="gestao_section" style="display: none;">
-                <!-- Conteúdo de gestão será carregado aqui após o login -->
+                <!-- Barra lateral de navegação -->
+                <aside class="sidebar">
+                    <button class="sidebar-tab active" onclick="abrirAbaGeral()">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Geral</span>
+                    </button>
+                    <button class="sidebar-tab" onclick="abrirAbaSalas()">
+                        <span class="tab-icon">🏠</span>
+                        <span class="tab-label">Salas</span>
+                    </button>
+                </aside>
+
+                <!-- Área de conteúdo principal -->
+                <div class="main-content">
+                    <!-- O conteúdo será carregado dinamicamente aqui -->
+                </div>
             </section>
 
             <footer class="page_footer">
                 <small>Área restrita para administradores.</small>
             </footer>
 
+        <script src="../public/js/gerarTelas.js"></script>
         <script src="../public/js/scriptADM.js"></script>
     </body>
 </html>

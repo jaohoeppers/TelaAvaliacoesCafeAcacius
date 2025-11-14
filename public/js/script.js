@@ -49,30 +49,7 @@ function carregar_perguntas(salaId) {
         .then(data => {
             const listaPerguntas = document.getElementById('perguntas');
             listaPerguntas.innerHTML = '';
-            data.forEach(pergunta => {
-                const fieldset = document.createElement('fieldset');
-                fieldset.className = 'pergunta';
-                fieldset.id = pergunta.id;
-                fieldset.dataset.perguntaId = pergunta.id;
-
-                let html = `
-                        <h3>${pergunta.descricao}</h3>
-                        <legend class="sr-only">Escolha uma nota de 0 a 10</legend>
-                        <div class="rating_scale" role="radiogroup" aria-label="Escala de avaliação 0 a 10">
-                    `;
-
-                for (let i = 0; i <= 10; i++) {
-                    const inputId = `p${pergunta.id}_r${i}`;
-                    html += `
-                        <input type="radio" id="${inputId}" name="${pergunta.id}" value="${i}">
-                        <label for="${inputId}" class="rating value-${i}">${i}</label>
-                    `;
-                }
-
-                html += `</div>`;
-                fieldset.innerHTML = html;
-                listaPerguntas.appendChild(fieldset);
-            });
+            criarFieldsetPergunta(listaPerguntas, data);
 
             listaPerguntas.addEventListener('change', function(e) {
                 if (e.target.type === 'radio') {
@@ -87,10 +64,42 @@ function carregar_perguntas(salaId) {
                         setTimeout(() => {
                             proximaPergunta.classList.remove('highlight-animation');
                         }, 1500);
+                    }else{
+                        // Rola suavemente até o botão de enviar
+                        const botaoEnviar = document.getElementById('btn_enviar');
+                        rolagemSuave(botaoEnviar, 800);
                     }
                 }
             });
         });
+}
+
+function criarFieldsetPergunta(listaPerguntas, data) {
+    data.forEach(pergunta => {
+        const fieldset = document.createElement('fieldset');
+        fieldset.className = 'pergunta';
+        fieldset.id = pergunta.id;
+        // fieldset.dataset.perguntaId = pergunta.id;
+
+        let html = `
+                <h3>${pergunta.descricao}</h3>
+                <legend class="sr-only">Escolha uma nota de 0 a 10</legend>
+                <div class="rating_scale" role="radiogroup" aria-label="Escala de avaliação 0 a 10">
+            `;
+
+        for (let i = 0; i <= 10; i++) {
+            const inputId = `p${pergunta.id}_r${i}`;
+            html += `
+                <input type="radio" id="${inputId}" name="${pergunta.id}" value="${i}">
+                <label for="${inputId}" class="rating value-${i}">${i}</label>
+            `;
+        }
+
+        html += `</div>`;
+        fieldset.innerHTML = html;
+        listaPerguntas.appendChild(fieldset);
+    });
+    
 }
 
 // Função para rolar a página suavemente até um elemento
