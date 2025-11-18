@@ -19,9 +19,27 @@ try {
             break;
 
         case 'get_respostas':
-            $stmt = $conexao->query('SELECT * FROM respostas WHERE ativo = true ORDER BY data_hora DESC');
+            $salaId = isset($_GET['sala_id']) ? (int) $_GET['sala_id'] : 0;
+            if ($salaId > 0) {
+                $stmt = $conexao->prepare('SELECT * FROM respostas WHERE ativo = true AND sala_id = :sala_id ORDER BY data_hora DESC');
+                $stmt->execute([':sala_id' => $salaId]);
+            } else {
+                $stmt = $conexao->query('SELECT * FROM respostas WHERE ativo = true ORDER BY data_hora DESC');
+            }
             $respostas = $stmt->fetchAll();
             echo json_encode($respostas);
+            break;
+
+        case 'get_feedback':
+            $idRespostas = isset($_GET['id_respostas']) ? $_GET['id_respostas'] : '';
+            if (empty($idRespostas)) {
+                echo json_encode(null);
+                exit;
+            }
+            $stmt = $conexao->prepare('SELECT descricao FROM feedback WHERE id_respostas = :id_respostas LIMIT 1');
+            $stmt->execute([':id_respostas' => $idRespostas]);
+            $feedback = $stmt->fetch();
+            echo json_encode($feedback ?: null);
             break;
 
         case 'get_salas':
@@ -230,6 +248,12 @@ try {
                 http_response_code(500);
                 echo json_encode(['error' => 'Erro ao excluir pergunta: ' . $e->getMessage()]);
             }
+            break;
+
+        case 'get_all_feedbacks':
+            $stmt = $conexao->query('SELECT DISTINCT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\'');
+            $feedbacks = $stmt->fetchAll();
+            echo json_encode($feedbacks);
             break;
 
         default:

@@ -446,7 +446,7 @@ body {
     border-color: var(--primary-color);
 }
 
-.btn-filtrar, .btn-limpar-filtro {
+.btn-filtrar, .btn-limpar-filtro, .btn-recarregar-avaliacoes {
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
@@ -472,6 +472,140 @@ body {
 
 .btn-limpar-filtro:hover {
     background-color: #d98c4a;
+}
+
+.btn-recarregar-avaliacoes {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 8px 16px;
+    font-size: 0.95rem;
+}
+
+.btn-recarregar-avaliacoes:hover {
+    background-color: #5a3d2a;
+    transform: scale(1.05);
+}
+
+/* Filtro de datas geral */
+.filtro-datas-geral {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--white);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* Estatísticas gerais */
+.estatisticas-gerais {
+    margin-top: 20px;
+}
+
+.periodo-info {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.cards-estatisticas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card-stat {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
+    padding: 25px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.card-stat:hover {
+    transform: translateY(-5px);
+}
+
+.card-stat-icon {
+    font-size: 3rem;
+}
+
+.card-stat-info {
+    flex: 1;
+}
+
+.card-stat-label {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.card-stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.secao-salas {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.secao-salas h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+}
+
+.tabela-salas-container {
+    overflow-x: auto;
+}
+
+.tabela-salas {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-salas th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.tabela-salas td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabela-salas tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.badge-nota {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
 }
 
 /* Painéis da sala */
@@ -731,6 +865,150 @@ body {
     background-color: #d32f2f;
 }
 
+/* Card de estatística */
+.estatistica-card {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.estatistica-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    border-color: var(--secondary-color);
+}
+
+/* Overlay de gráfico */
+.overlay-grafico {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s;
+}
+
+.overlay-grafico-conteudo {
+    background-color: var(--white);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: slideDown 0.3s;
+}
+
+.overlay-grafico-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--border-color);
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+}
+
+.overlay-grafico-header h3 {
+    margin: 0;
+    color: var(--white);
+}
+
+.overlay-grafico-body {
+    padding: 30px;
+}
+
+.grafico-descricao {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.grafico-periodo {
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.grafico-total {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 30px;
+}
+
+.grafico-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.grafico-container svg {
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.grafico-segmento {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.grafico-segmento:hover {
+    opacity: 0.8;
+}
+
+.grafico-legenda {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.legenda-cor {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.legenda-texto {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .overlay-grafico-conteudo {
+        width: 95%;
+    }
+    
+    .grafico-container svg {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .grafico-legenda {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Conteúdo de estatísticas */
 .estatisticas-conteudo {
     padding: 10px;
@@ -754,6 +1032,178 @@ body {
     .perguntas-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Painel de Avaliações */
+.painel-avaliacoes-sala {
+    width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: var(--white);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.painel-avaliacoes-sala h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 1.4rem;
+}
+
+.avaliacoes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.avaliacao-card {
+    background-color: #fff;
+    border: 3px solid;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.avaliacao-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.avaliacao-header {
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.avaliacao-body {
+    padding: 15px;
+}
+
+.avaliacao-media {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.avaliacao-data {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Overlay de Avaliação */
+.overlay-avaliacao {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s;
+}
+
+.overlay-avaliacao-conteudo {
+    background-color: var(--white);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    animation: slideDown 0.3s;
+}
+
+.overlay-avaliacao-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+.overlay-avaliacao-header h3 {
+    margin: 0;
+    color: white;
+}
+
+.overlay-avaliacao-body {
+    padding: 30px;
+}
+
+.avaliacao-info {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.avaliacao-media-destaque {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.avaliacao-data-completa {
+    font-size: 1rem;
+    color: #666;
+}
+
+.avaliacao-feedback {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.avaliacao-feedback h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.avaliacao-feedback p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+.avaliacao-respostas h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.resposta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 3px solid var(--border-color);
+}
+
+.resposta-pergunta {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.resposta-nota {
+    padding: 5px 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
 }
 
 /* Footer */
