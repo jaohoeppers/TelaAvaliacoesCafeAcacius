@@ -277,6 +277,16 @@ export function gerarTelaSalas() {
                 containerBotoes.appendChild(botaoSala);
             });
             
+            // Card para adicionar nova sala
+            const cardNovaSala = document.createElement('button');
+            cardNovaSala.className = 'sala-card sala-card-novo';
+            cardNovaSala.innerHTML = `
+                <span class="sala-icon">+</span>
+                <span class="sala-nome">Nova Sala</span>
+            `;
+            cardNovaSala.onclick = () => abrirOverlayNovaSala();
+            containerBotoes.appendChild(cardNovaSala);
+            
             mainContent.appendChild(containerBotoes);
         })
         .catch(error => {
@@ -297,6 +307,9 @@ export function abrirDetalhesSala(salaId, salaNome) {
         <div class="sala-header">
             <button class="btn-voltar" onclick="gerarTelaSalas()">← Voltar</button>
             <h2>Detalhes da Sala: ${salaNome}</h2>
+            <button class="btn-inativar-sala" onclick="inativarSala(${salaId}, '${salaNome}')" title="Inativar sala">
+                🗑️ Inativar Sala
+            </button>
         </div>
         
         <!-- Filtro de datas -->
@@ -455,6 +468,116 @@ export function limparFiltroData(salaId) {
 export function recarregarAvaliacoes(salaId) {
     console.log(`Recarregando avaliações da sala ${salaId}`);
     carregarAvaliacoesDaSala(salaId);
+}
+
+// Função para abrir o overlay de criação de nova sala
+export function abrirOverlayNovaSala() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay-pergunta';
+    overlay.innerHTML = `
+        <div class="overlay-conteudo">
+            <div class="overlay-header">
+                <h3>Nova Sala</h3>
+                <button class="btn-fechar-overlay" onclick="fecharOverlayNovaSala()">&times;</button>
+            </div>
+            <div class="overlay-body">
+                <label for="nomeNovaSala">Nome da Sala:</label>
+                <input type="text" id="nomeNovaSala" class="input-nome-sala" placeholder="Digite o nome da sala..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em;">
+            </div>
+            <div class="overlay-footer">
+                <button class="btn-salvar" onclick="criarNovaSala()">💾 Criar Sala</button>
+                <button class="btn-cancelar" onclick="fecharOverlayNovaSala()">❌ Cancelar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Foca no input
+    setTimeout(() => {
+        const input = document.getElementById('nomeNovaSala');
+        input.focus();
+        // Permite criar ao pressionar Enter
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                criarNovaSala();
+            }
+        });
+    }, 100);
+}
+
+// Função para fechar o overlay de nova sala
+export function fecharOverlayNovaSala() {
+    const overlay = document.querySelector('.overlay-pergunta');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// Função para criar uma nova sala
+export function criarNovaSala() {
+    const input = document.getElementById('nomeNovaSala');
+    const nomeSala = input.value.trim();
+    
+    if (!nomeSala) {
+        alert('O nome da sala não pode estar vazio.');
+        return;
+    }
+    
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=criar_sala`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            descricao: nomeSala
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sala criada com sucesso!');
+            fecharOverlayNovaSala();
+            // Recarrega a tela de salas
+            gerarTelaSalas();
+        } else {
+            alert('Erro ao criar sala: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao criar sala:', error);
+        alert('Erro ao criar sala.');
+    });
+}
+
+// Função para inativar uma sala
+export function inativarSala(salaId, salaNome) {
+    if (!confirm(`Tem certeza que deseja inativar a sala "${salaNome}"? Esta ação não pode ser desfeita.`)) {
+        return;
+    }
+    
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=inativar_sala`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: salaId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sala inativada com sucesso!');
+            // Volta para a tela de salas
+            gerarTelaSalas();
+        } else {
+            alert('Erro ao inativar sala: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao inativar sala:', error);
+        alert('Erro ao inativar sala.');
+    });
 }
 
 // ========================================
@@ -1322,3 +1445,7 @@ window.handleDrop = handleDrop;
 window.handleDragLeave = handleDragLeave;
 window.atualizarNumerosOrdem = atualizarNumerosOrdem;
 window.salvarOrdemPerguntas = salvarOrdemPerguntas;
+window.abrirOverlayNovaSala = abrirOverlayNovaSala;
+window.fecharOverlayNovaSala = fecharOverlayNovaSala;
+window.criarNovaSala = criarNovaSala;
+window.inativarSala = inativarSala;

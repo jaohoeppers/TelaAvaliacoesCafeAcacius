@@ -22,7 +22,7 @@
                 <h2>Login de Administrador</h2>
                 <div class="login_field">
                     <label for="admin_password">Senha:</label>
-                    <input type="password" id="admin_password" name="admin_password" aria-describedby="password_help">
+                    <input type="password" id="admin_password" name="admin_password" aria-describedby="password_help" onkeypress="if(event.key === 'Enter') validar_senha()">
                     <small id="password_help" class="hint">Insira a senha de administrador para acessar as avaliações.</small>
                 </div>
                 <button class="btn_enviar" onclick="validar_senha()">Entrar</button>
