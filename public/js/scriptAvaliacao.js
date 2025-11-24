@@ -1,4 +1,5 @@
-//Verificações ao chamar o script
+// Import para buscar a base da requisição http
+import { http } from './config.js';
 
 // verifica se está na página de seleção de salas
 if(document.getElementById('salas') != null){
@@ -7,18 +8,21 @@ if(document.getElementById('salas') != null){
 
 // verifica se está na página de avaliação
 if(document.getElementById('form_avaliacao') != null){
-    h1 = document.getElementById('nome_sala');
+    var h1 = document.getElementById('nome_sala');
     h1.innerHTML = "Avalie a Sala "+getCookie('sala_nome');
     // carregar_perguntas( getCookie('sala_id'));
 }
 
-//Realiza a busca das opçoes de salas disponíveis
-function get_salas(){
+//===============================================
+// INDEX
+//===============================================
+
+export function get_salas(){
     try{
-        fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_salas`)
+        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`)
             .then(response => response.json())
             .then(data => {
-                opcoes = document.getElementById('salas');
+                var opcoes = document.getElementById('salas');
                 data.forEach(sala => {
                     const option = document.createElement('option');
                     option.className = 'sala';
@@ -34,17 +38,19 @@ function get_salas(){
     }
 }
 
-//Muda o conteudo da tela para as perguntas, inativa a section antiga e ativa a nova
-function gerar_tela_perguntas(){
+//===============================================
+// AVALIAÇÃO
+//===============================================
+
+export function gerar_tela_perguntas(){
     document.getElementById('aviso').innerHTML = "Sua opinião é importante — escolha um número de 0 (Improvável) a 10 (Muito provável)."
     document.getElementById('iniciar').style.display = 'none';
     document.querySelector('.avaliacao').style.display = 'block';
     carregar_perguntas( getCookie('sala_id'));
 }
 
-//Adiciona as perguntas dentro da section
-function carregar_perguntas(salaId) {
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+export function carregar_perguntas(salaId) {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(data => {
             const listaPerguntas = document.getElementById('perguntas');
@@ -74,7 +80,7 @@ function carregar_perguntas(salaId) {
         });
 }
 
-function criarFieldsetPergunta(listaPerguntas, data) {
+export function criarFieldsetPergunta(listaPerguntas, data) {
     data.forEach(pergunta => {
         const fieldset = document.createElement('fieldset');
         fieldset.className = 'pergunta';
@@ -102,8 +108,7 @@ function criarFieldsetPergunta(listaPerguntas, data) {
     
 }
 
-// Função para rolar a página suavemente até um elemento
-function rolagemSuave(elemento, duracao) {
+export function rolagemSuave(elemento, duracao) {
     const posicaoFinal = elemento.getBoundingClientRect().top + window.pageYOffset - (window.innerHeight / 2) + (elemento.clientHeight / 2);
     const posicaoInicial = window.pageYOffset;
     const distancia = posicaoFinal - posicaoInicial;
@@ -127,8 +132,7 @@ function rolagemSuave(elemento, duracao) {
     requestAnimationFrame(animacao);
 }
 
-// Salvar avaliações no BD
-async function salvar_respostas() {
+export  async function salvar_respostas() {
     const idGerado = Date.now();
     const jsonRespostas = [];
     const respostas = document.forms['form_avaliacao'].querySelectorAll('.pergunta');
@@ -178,14 +182,14 @@ async function salvar_respostas() {
     var statusFeedback = "";
 
     try {
-        await fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=salvar_respostas', {
+        await fetch(`${http}/progavaliacoescafe/src/backend.php?action=salvar_respostas`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(jsonRespostas)
         }).then(response => response.status === 200 ? statusRespostas = response.json() : null);
 
         if (feedbackDescricao != "") {
-            await fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=salvar_feedback', {
+            await fetch(`${http}/progavaliacoescafe/src/backend.php?action=salvar_feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ descricao: feedbackDescricao, id_respostas: idGerado })
@@ -216,7 +220,7 @@ async function salvar_respostas() {
     }
 }
 
-function agradecimento(){
+export function agradecimento(){
     if (document.getElementById('agradecimento_overlay')) return;
 
     const totalSeconds = 10;
@@ -304,7 +308,7 @@ function agradecimento(){
     voltarBtn.addEventListener('click', () => window.location.href = 'avaliacao.html');
 }
 
-function mostrarEnviandoRespostas() {
+export function mostrarEnviandoRespostas() {
     // Evita criar múltiplos overlays
     if (document.getElementById('enviando_respostas_overlay')) return;
 
@@ -334,22 +338,40 @@ function mostrarEnviandoRespostas() {
     document.body.appendChild(overlay);
 }
 
-function esconderEnviandoRespostas() {
+export function esconderEnviandoRespostas() {
     const overlay = document.getElementById('enviando_respostas_overlay');
     if (overlay) {
         overlay.remove();
     }
 }
 
-//Busca o valor de um cookie pelo nome
-function getCookie(name) {
+//===============================================
+// FUNÇÃO AUXILIAR PARA COOKIES
+//===============================================
+
+export function getCookie(name) {
     const match = document.cookie.split('; ').find(row => row.startsWith(name + '='));
     return match ? decodeURIComponent(match.split('=')[1]) : null;
 }
 
-//Salva o nome e id da sala no cookie
-function salvar_sala_cookie(sala_id, sala_nome){
+export function salvar_sala_cookie(sala_id, sala_nome){
     document.cookie = `${'sala_id'}=${sala_id};path=/`; 
     document.cookie = `${'sala_nome'}=${sala_nome};path=/`; 
     window.location.href='avaliacao.html';
 }
+
+// ========================================
+// EXPORTAÇÕES PARA USO GLOBAL
+// ========================================
+
+window.get_salas = get_salas;
+window.gerar_tela_perguntas = gerar_tela_perguntas;
+window.carregar_perguntas = carregar_perguntas;
+window.criarFieldsetPergunta = criarFieldsetPergunta;
+window.rolagemSuave = rolagemSuave;
+window.salvar_respostas = salvar_respostas;
+window.agradecimento = agradecimento;
+window.mostrarEnviandoRespostas = mostrarEnviandoRespostas;
+window.esconderEnviandoRespostas = esconderEnviandoRespostas;
+window.getCookie = getCookie;
+window.salvar_sala_cookie = salvar_sala_cookie;

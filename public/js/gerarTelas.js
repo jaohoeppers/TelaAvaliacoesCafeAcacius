@@ -1,6 +1,5 @@
-// ========================================
-// FUNÇÕES PARA GERAR TELAS E PAINÉIS DA GESTÃO
-// ========================================
+// Import para buscar a base da requisição http
+import { http } from './config.js';
 
 // Variáveis globais para controle de paginação
 let todasAsRespostas = [];
@@ -12,7 +11,8 @@ let paginaAtualPorPergunta = {};
 // TELA GERAL
 // ========================================
 
-function gerarTelaGeral() {
+// Função para gerar a aba geral
+export function gerarTelaGeral() {
     const mainContent = document.querySelector('.main-content');
     if (!mainContent) return;
     
@@ -42,14 +42,15 @@ function gerarTelaGeral() {
     carregarEstatisticasGerais();
 }
 
-function carregarEstatisticasGerais() {
+// Função para carregar o painel de estatísticas gerais
+export async function carregarEstatisticasGerais() {
     const dataInicial = document.getElementById('dataInicialGeral')?.value;
     const dataFinal = document.getElementById('dataFinalGeral')?.value;
     
     // Busca todas as respostas e salas
     Promise.all([
-        fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=get_respostas').then(r => r.json()),
-        fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=get_salas').then(r => r.json())
+        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas`).then(r => r.json()),
+        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`).then(r => r.json())
     ])
     .then(([respostas, salas]) => {
         // Aplica filtro de data se necessário
@@ -71,7 +72,8 @@ function carregarEstatisticasGerais() {
     });
 }
 
-function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFinal) {
+// Função para calcular estatísticas gerais com base nas respostas e salas
+export function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFinal) {
     const stats = {
         totalAvaliacoes: 0,
         avaliacoesPorSala: {},
@@ -128,7 +130,7 @@ function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFinal) {
     const idsRespostasFiltradas = new Set(respostas.map(r => r.id_respostas));
     
     // Busca feedbacks para contar avaliações com feedback
-    fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=get_all_feedbacks')
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_all_feedbacks`)
         .then(r => r.json())
         .then(feedbacks => {
             if (feedbacks && Array.isArray(feedbacks)) {
@@ -146,7 +148,8 @@ function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFinal) {
     return stats;
 }
 
-function renderizarEstatisticasGerais(stats, dataInicial, dataFinal) {
+// Função para renderizar as estatísticas gerais na tela
+export function renderizarEstatisticasGerais(stats, dataInicial, dataFinal) {
     const container = document.getElementById('estatisticasGerais');
     if (!container) return;
     
@@ -217,7 +220,8 @@ function renderizarEstatisticasGerais(stats, dataInicial, dataFinal) {
     container.innerHTML = html;
 }
 
-function aplicarFiltroGeral() {
+// Função para aplicar filtro de datas nas estatísticas gerais
+export function aplicarFiltroGeral() {
     const dataInicial = document.getElementById('dataInicialGeral').value;
     const dataFinal = document.getElementById('dataFinalGeral').value;
     
@@ -234,7 +238,8 @@ function aplicarFiltroGeral() {
     carregarEstatisticasGerais();
 }
 
-function limparFiltroGeral() {
+// Função para limpar o filtro de datas das estatísticas gerais
+export function limparFiltroGeral() {
     document.getElementById('dataInicialGeral').value = '';
     document.getElementById('dataFinalGeral').value = '';
     carregarEstatisticasGerais();
@@ -244,7 +249,8 @@ function limparFiltroGeral() {
 // TELA SALAS
 // ========================================
 
-function gerarTelaSalas() {
+// Função para gerar a tela de salas
+export function gerarTelaSalas() {
     const mainContent = document.querySelector('.main-content');
     if (!mainContent) return;
     
@@ -254,7 +260,7 @@ function gerarTelaSalas() {
     mainContent.innerHTML = '<h2>Gestão de Salas</h2>';
     
     // Busca todas as salas
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_salas`)
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`)
         .then(response => response.json())
         .then(salas => {
             const containerBotoes = document.createElement('div');
@@ -279,7 +285,8 @@ function gerarTelaSalas() {
         });
 }
 
-function abrirDetalhesSala(salaId, salaNome) {
+// Função para abrir os detalhes de uma sala específica
+export function abrirDetalhesSala(salaId, salaNome) {
     const mainContent = document.querySelector('.main-content');
     if (!mainContent) return;
     
@@ -339,8 +346,9 @@ function abrirDetalhesSala(salaId, salaNome) {
     carregarAvaliacoesDaSala(salaId);
 }
 
-function carregarPerguntasDaSala(salaId) {
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+// Função para carregar as perguntas de uma sala
+export function carregarPerguntasDaSala(salaId) {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(perguntas => {
             renderizarPerguntasGrid(perguntas, salaId);
@@ -354,7 +362,8 @@ function carregarPerguntasDaSala(salaId) {
         });
 }
 
-function renderizarPerguntasGrid(perguntas, salaId) {
+// Função para renderizar o grid de perguntas da sala
+export function renderizarPerguntasGrid(perguntas, salaId) {
     const grid = document.getElementById('perguntasGrid');
     if (!grid) return;
     
@@ -366,11 +375,28 @@ function renderizarPerguntasGrid(perguntas, salaId) {
         perguntas.forEach(pergunta => {
             const card = document.createElement('div');
             card.className = 'pergunta-card';
+            card.draggable = true;
+            card.dataset.perguntaId = pergunta.id;
+            card.dataset.ordemExibicao = pergunta.ordem_exibicao;
             card.innerHTML = `
-                <div class="pergunta-id">#${pergunta.id}</div>
+                <div class="pergunta-id">#${pergunta.ordem_exibicao}</div>
                 <div class="pergunta-descricao">${pergunta.descricao}</div>
             `;
-            card.onclick = () => abrirOverlayPergunta(pergunta);
+            
+            // Evento de clique (apenas quando não está arrastando)
+            card.addEventListener('click', (e) => {
+                if (!card.classList.contains('dragging')) {
+                    abrirOverlayPergunta(pergunta);
+                }
+            });
+            
+            // Eventos de drag and drop
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragleave', handleDragLeave);
+            
             grid.appendChild(card);
         });
     }
@@ -384,9 +410,21 @@ function renderizarPerguntasGrid(perguntas, salaId) {
     `;
     cardNovo.onclick = () => abrirOverlayNovaPergunta(salaId);
     grid.appendChild(cardNovo);
+    
+    // Adiciona botão de salvar ordem (se não existir)
+    const painelPerguntas = document.getElementById('painelPerguntasSala');
+    if (painelPerguntas && !document.getElementById('btnSalvarOrdem')) {
+        const btnSalvar = document.createElement('button');
+        btnSalvar.id = 'btnSalvarOrdem';
+        btnSalvar.className = 'btn-salvar-ordem';
+        btnSalvar.textContent = '💾 Salvar Nova Ordem';
+        btnSalvar.onclick = () => salvarOrdemPerguntas(salaId);
+        painelPerguntas.appendChild(btnSalvar);
+    }
 }
 
-function aplicarFiltroData(salaId) {
+// Função para aplicar filtro de datas nas estatísticas da sala
+export function aplicarFiltroData(salaId) {
     const dataInicial = document.getElementById('dataInicial').value;
     const dataFinal = document.getElementById('dataFinal').value;
     
@@ -405,14 +443,16 @@ function aplicarFiltroData(salaId) {
     // Por exemplo, recarregar as estatísticas com os parâmetros de data
 }
 
-function limparFiltroData(salaId) {
+// Função para limpar o filtro de datas da sala
+export function limparFiltroData(salaId) {
     document.getElementById('dataInicial').value = '';
     document.getElementById('dataFinal').value = '';
     console.log(`Filtro de data limpo para sala ${salaId}`);
     // Recarrega os dados sem filtro
 }
 
-function recarregarAvaliacoes(salaId) {
+// Função para recarregar as avaliações da sala
+export function recarregarAvaliacoes(salaId) {
     console.log(`Recarregando avaliações da sala ${salaId}`);
     carregarAvaliacoesDaSala(salaId);
 }
@@ -421,11 +461,12 @@ function recarregarAvaliacoes(salaId) {
 // ESTATÍSTICAS DA SALA
 // ========================================
 
-function carregarEstatisticasDaSala(salaId) {
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+// Função para carregar as estatísticas de uma sala específica
+export function carregarEstatisticasDaSala(salaId) {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(perguntas => {
-            renderizarEstatisticasGrid(perguntas, salaId);
+            renderizarEstatisticasGrid(perguntas);
         })
         .catch(error => {
             console.error('Erro ao carregar estatísticas da sala:', error);
@@ -436,7 +477,8 @@ function carregarEstatisticasDaSala(salaId) {
         });
 }
 
-function renderizarEstatisticasGrid(perguntas, salaId) {
+// Função para renderizar o grid de estatísticas das perguntas
+export function renderizarEstatisticasGrid(perguntas) {
     const conteudo = document.getElementById('estatisticasConteudo');
     if (!conteudo) return;
     
@@ -456,7 +498,7 @@ function renderizarEstatisticasGrid(perguntas, salaId) {
         const card = document.createElement('div');
         card.className = 'pergunta-card estatistica-card';
         card.innerHTML = `
-            <div class="pergunta-id">#${pergunta.id}</div>
+            <div class="pergunta-id">#${pergunta.ordem_exibicao}</div>
             <div class="pergunta-descricao">${pergunta.descricao}</div>
         `;
         card.onclick = () => abrirGraficoPergunta(pergunta.id, pergunta.descricao);
@@ -466,13 +508,14 @@ function renderizarEstatisticasGrid(perguntas, salaId) {
     conteudo.appendChild(grid);
 }
 
-function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
+// Função para abrir o gráfico de pizza de uma pergunta específica
+export function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
     // Obtém os valores do filtro de data
     const dataInicial = document.getElementById('dataInicial')?.value;
     const dataFinal = document.getElementById('dataFinal')?.value;
     
     // Busca as respostas da pergunta
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_respostas_por_pergunta&pergunta_id=${perguntaId}`)
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas_por_pergunta&pergunta_id=${perguntaId}`)
         .then(response => response.json())
         .then(respostas => {
             if (respostas.length === 0) {
@@ -503,7 +546,8 @@ function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
         });
 }
 
-function gerarGraficoPizza(perguntaId, perguntaDescricao, respostas, dataInicial, dataFinal) {
+// Função para gerar o gráfico de pizza
+export function gerarGraficoPizza(perguntaId, perguntaDescricao, respostas, dataInicial, dataFinal) {
     // Conta as ocorrências de cada nota (0-10)
     const contagemNotas = {};
     for (let i = 0; i <= 10; i++) {
@@ -533,7 +577,8 @@ function gerarGraficoPizza(perguntaId, perguntaDescricao, respostas, dataInicial
     criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico, respostas.length, dataInicial, dataFinal);
 }
 
-function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico, totalRespostas, dataInicial, dataFinal) {
+// Função para criar o overlay visual com o gráfico de pizza
+export function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico, totalRespostas, dataInicial, dataFinal) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay-grafico';
     
@@ -648,7 +693,8 @@ function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico, totalR
     document.body.appendChild(overlay);
 }
 
-function fecharOverlayGrafico() {
+// Função para fechar o overlay do gráfico
+export function fecharOverlayGrafico() {
     const overlay = document.querySelector('.overlay-grafico');
     if (overlay) {
         overlay.remove();
@@ -659,8 +705,9 @@ function fecharOverlayGrafico() {
 // AVALIAÇÕES DA SALA
 // ========================================
 
-function carregarAvaliacoesDaSala(salaId) {
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_respostas&sala_id=${salaId}`)
+// Função para carregar as avaliações de uma sala específica
+export function carregarAvaliacoesDaSala(salaId) {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(respostas => {
             if (respostas.length === 0) {
@@ -695,7 +742,7 @@ function carregarAvaliacoesDaSala(salaId) {
                 avaliacoes[resposta.id_respostas].push(resposta);
             });
             
-            renderizarAvaliacoesGrid(avaliacoes, salaId);
+            renderizarAvaliacoesGrid(avaliacoes);
         })
         .catch(error => {
             console.error('Erro ao carregar avaliações:', error);
@@ -703,7 +750,8 @@ function carregarAvaliacoesDaSala(salaId) {
         });
 }
 
-function renderizarAvaliacoesGrid(avaliacoes, salaId) {
+// Função para renderizar o grid de avaliações da sala
+export function renderizarAvaliacoesGrid(avaliacoes) {
     const conteudo = document.getElementById('avaliacoesConteudo');
     if (!conteudo) return;
     
@@ -743,7 +791,8 @@ function renderizarAvaliacoesGrid(avaliacoes, salaId) {
     conteudo.appendChild(grid);
 }
 
-function getCorPorMedia(media) {
+// Função para obter a cor correspondente a média da avaliação
+export function getCorPorMedia(media) {
     // Cores conforme a escala da imagem (0 = vermelho, 10 = verde)
     if (media <= 1) return '#FF0000'; // 0-1: Vermelho
     if (media <= 2) return '#FF4500'; // 2: Laranja avermelhado
@@ -757,20 +806,22 @@ function getCorPorMedia(media) {
     return '#32CD32'; // 10: Verde
 }
 
-function abrirDetalhesAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media) {
+// Função para exibir os detalhes de uma avaliação
+export function abrirDetalhesAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media) {
     // Busca o feedback se existir
-    fetch(`http://localhost:80/progavaliacoescafe/src/backend.php?action=get_feedback&id_respostas=${idAvaliacao}`)
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_feedback&id_respostas=${idAvaliacao}`)
         .then(response => response.json())
         .then(feedback => {
-            mostrarOverlayAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media, feedback);
+            mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedback);
         })
         .catch(error => {
             console.error('Erro ao buscar feedback:', error);
-            mostrarOverlayAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media, null);
+            mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, null);
         });
 }
 
-function mostrarOverlayAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media, feedback) {
+// Função para mostrar o overlay com os detalhes completos da avaliação
+export function mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedback) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay-avaliacao';
     
@@ -779,9 +830,14 @@ function mostrarOverlayAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media,
     // Organiza respostas por pergunta
     let respostasHTML = '';
     respostas.forEach(resposta => {
+        const ordemExibicao = resposta.pergunta_ordem || resposta.pergunta_id;
+        const descricao = resposta.pergunta_descricao || 'Descrição não disponível';
         respostasHTML += `
-            <div class="resposta-item">
-                <span class="resposta-pergunta">Pergunta #${resposta.pergunta_id}</span>
+            <div class="resposta-item" onclick="toggleDescricaoPergunta(this)" style="cursor: pointer;" title="Clique para ver a descrição da pergunta">
+                <span class="resposta-pergunta">Pergunta #${ordemExibicao}</span>
+                <div class="resposta-descricao" style="display: none; margin-top: 8px; padding: 8px; background-color: #f5f5f5; border-radius: 4px; font-size: 0.9em; color: #555;">
+                    ${descricao}
+                </div>
                 <span class="resposta-nota" style="background-color: ${getCorPorMedia(resposta.nota)}">
                     Nota: ${resposta.nota}
                 </span>
@@ -831,15 +887,28 @@ function mostrarOverlayAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media,
     document.body.appendChild(overlay);
 }
 
-function fecharOverlayAvaliacao() {
+// Função para fechar o overlay de detalhes da avaliação
+export function fecharOverlayAvaliacao() {
     const overlay = document.querySelector('.overlay-avaliacao');
     if (overlay) {
         overlay.remove();
     }
 }
 
+// Função para exibir a descrição da pergunta ao clicar
+export function toggleDescricaoPergunta(element) {
+    const descricaoDiv = element.querySelector('.resposta-descricao');
+    if (descricaoDiv) {
+        if (descricaoDiv.style.display === 'none') {
+            descricaoDiv.style.display = 'block';
+        } else {
+            descricaoDiv.style.display = 'none';
+        }
+    }
+}
+
 // Função para recarregar apenas as perguntas da sala atual
-function recarregarPerguntasSala() {
+export function recarregarPerguntasSala() {
     const estado = localStorage.getItem('estadoTela');
     
     if (estado) {
@@ -860,7 +929,8 @@ function recarregarPerguntasSala() {
 // OVERLAY DE PERGUNTA
 // ========================================
 
-function abrirOverlayPergunta(pergunta) {
+// Função para abrir o overlay de visualização/edição de pergunta
+export function abrirOverlayPergunta(pergunta) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay-pergunta';
     overlay.innerHTML = `
@@ -884,14 +954,16 @@ function abrirOverlayPergunta(pergunta) {
     document.body.appendChild(overlay);
 }
 
-function fecharOverlayPergunta() {
+// Função para fechar o overlay de pergunta
+export function fecharOverlayPergunta() {
     const overlay = document.querySelector('.overlay-pergunta');
     if (overlay) {
         overlay.remove();
     }
 }
 
-function habilitarEdicaoPergunta(perguntaId) {
+// Função para habilitar o modo de edição da pergunta
+export function habilitarEdicaoPergunta() {
     const textarea = document.getElementById('descricaoPergunta');
     const btnEditar = document.querySelector('.btn-editar');
     const btnSalvar = document.getElementById('btnSalvarPergunta');
@@ -904,7 +976,8 @@ function habilitarEdicaoPergunta(perguntaId) {
     btnCancelar.style.display = 'inline-block';
 }
 
-function cancelarEdicaoPergunta(descricaoOriginal) {
+// Função para cancelar a edição e restaurar o texto original
+export function cancelarEdicaoPergunta(descricaoOriginal) {
     const textarea = document.getElementById('descricaoPergunta');
     const btnEditar = document.querySelector('.btn-editar');
     const btnSalvar = document.getElementById('btnSalvarPergunta');
@@ -917,7 +990,8 @@ function cancelarEdicaoPergunta(descricaoOriginal) {
     btnCancelar.style.display = 'none';
 }
 
-function salvarEdicaoPergunta(perguntaId) {
+// Função para salvar as alterações feitas na pergunta
+export function salvarEdicaoPergunta(perguntaId) {
     const textarea = document.getElementById('descricaoPergunta');
     const novaDescricao = textarea.value.trim();
     
@@ -926,7 +1000,7 @@ function salvarEdicaoPergunta(perguntaId) {
         return;
     }
     
-    fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=editar_pergunta', {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=editar_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -953,12 +1027,13 @@ function salvarEdicaoPergunta(perguntaId) {
     });
 }
 
-function excluirPergunta(perguntaId) {
+// Função para inativar uma pergunta
+export function excluirPergunta(perguntaId) {
     if (!confirm('Tem certeza que deseja excluir esta pergunta? Esta ação não pode ser desfeita.')) {
         return;
     }
     
-    fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=excluir_pergunta', {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=excluir_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -984,7 +1059,8 @@ function excluirPergunta(perguntaId) {
     });
 }
 
-function abrirOverlayNovaPergunta(salaId) {
+// Função para abrir o overlay de criação de nova pergunta
+export function abrirOverlayNovaPergunta(salaId) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay-pergunta';
     overlay.innerHTML = `
@@ -1011,7 +1087,8 @@ function abrirOverlayNovaPergunta(salaId) {
     }, 100);
 }
 
-function criarNovaPergunta(salaId) {
+// Função para criar uma nova pergunta na sala
+export function criarNovaPergunta(salaId) {
     const textarea = document.getElementById('descricaoNovaPergunta');
     const descricao = textarea.value.trim();
     
@@ -1020,7 +1097,7 @@ function criarNovaPergunta(salaId) {
         return;
     }
     
-    fetch('http://localhost:80/progavaliacoescafe/src/backend.php?action=criar_pergunta', {
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=criar_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1046,3 +1123,202 @@ function criarNovaPergunta(salaId) {
         alert('Erro ao criar pergunta.');
     });
 }
+
+// ========================================
+// DRAG AND DROP PARA REORDENAR PERGUNTAS
+// ========================================
+
+let draggedElement = null;
+
+// Função para iniciar o arraste de um card de pergunta
+export function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+// Função para finalizar o arraste e mostrar botão de salvar
+export function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Remove classe drag-over de todos os cards
+    document.querySelectorAll('.pergunta-card').forEach(card => {
+        card.classList.remove('drag-over');
+    });
+    
+    // Mostra o botão de salvar ordem
+    const btnSalvar = document.getElementById('btnSalvarOrdem');
+    if (btnSalvar) {
+        btnSalvar.classList.add('show');
+    }
+}
+
+// Função para permitir que o elemento seja solto sobre outro
+export function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    
+    // Não permite soltar sobre o card de nova pergunta
+    if (this.classList.contains('pergunta-card-novo')) {
+        return false;
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+// Função para processar o drop e reordenar os cards
+export function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    // Não permite soltar sobre o card de nova pergunta
+    if (this.classList.contains('pergunta-card-novo')) {
+        return false;
+    }
+    
+    if (draggedElement !== this) {
+        // Obtém o grid
+        const grid = this.parentNode;
+        
+        // Obtém a posição de ambos os elementos
+        const allCards = [...grid.querySelectorAll('.pergunta-card:not(.pergunta-card-novo)')];
+        const draggedIndex = allCards.indexOf(draggedElement);
+        const targetIndex = allCards.indexOf(this);
+        
+        // Move o elemento
+        if (draggedIndex < targetIndex) {
+            this.parentNode.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedElement, this);
+        }
+        
+        // Atualiza os números de ordem visualmente
+        atualizarNumerosOrdem();
+    }
+    
+    this.classList.remove('drag-over');
+    return false;
+}
+
+// Função para remover o feedback visual ao sair da área de drop
+export function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+// Função para atualizar os números de ordem visualmente após reordenação
+export function atualizarNumerosOrdem() {
+    const grid = document.getElementById('perguntasGrid');
+    if (!grid) return;
+    
+    const cards = grid.querySelectorAll('.pergunta-card:not(.pergunta-card-novo)');
+    cards.forEach((card, index) => {
+        const perguntaIdElement = card.querySelector('.pergunta-id');
+        if (perguntaIdElement) {
+            perguntaIdElement.textContent = `#${index + 1}`;
+            card.dataset.novaOrdem = index + 1;
+        }
+    });
+}
+
+// Função para salvar a nova ordem das perguntas no banco de dados
+export function salvarOrdemPerguntas(salaId) {
+    const grid = document.getElementById('perguntasGrid');
+    if (!grid) return;
+    
+    const cards = grid.querySelectorAll('.pergunta-card:not(.pergunta-card-novo)');
+    const perguntas = [];
+    
+    cards.forEach((card, index) => {
+        perguntas.push({
+            id: parseInt(card.dataset.perguntaId),
+            ordem_exibicao: index + 1
+        });
+    });
+    
+    if (perguntas.length === 0) {
+        alert('Nenhuma pergunta para atualizar.');
+        return;
+    }
+    
+    // Envia para o backend
+    fetch(`${http}/progavaliacoescafe/src/backend.php?action=atualizar_ordem_perguntas`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ perguntas })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Ordem das perguntas atualizada com sucesso!');
+            
+            // Esconde o botão de salvar
+            const btnSalvar = document.getElementById('btnSalvarOrdem');
+            if (btnSalvar) {
+                btnSalvar.classList.remove('show');
+            }
+            
+            // Recarrega as perguntas
+            carregarPerguntasDaSala(salaId);
+            carregarEstatisticasDaSala(salaId);
+        } else {
+            alert('Erro ao atualizar ordem: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao salvar ordem:', error);
+        alert('Erro ao salvar ordem das perguntas.');
+    });
+}
+
+// ========================================
+// EXPORTAÇÕES PARA USO GLOBAL
+// ========================================
+
+window.gerarTelaGeral = gerarTelaGeral;
+window.carregarEstatisticasGerais = carregarEstatisticasGerais;
+window.calcularEstatisticasGerais = calcularEstatisticasGerais;
+window.renderizarEstatisticasGerais = renderizarEstatisticasGerais;
+window.aplicarFiltroGeral = aplicarFiltroGeral;
+window.limparFiltroGeral = limparFiltroGeral;
+window.gerarTelaSalas = gerarTelaSalas;
+window.abrirDetalhesSala = abrirDetalhesSala;
+window.carregarPerguntasDaSala = carregarPerguntasDaSala;
+window.renderizarPerguntasGrid = renderizarPerguntasGrid;
+window.aplicarFiltroData = aplicarFiltroData;
+window.limparFiltroData = limparFiltroData;
+window.recarregarAvaliacoes = recarregarAvaliacoes;
+window.carregarEstatisticasDaSala = carregarEstatisticasDaSala;
+window.renderizarEstatisticasGrid = renderizarEstatisticasGrid;
+window.abrirGraficoPergunta = abrirGraficoPergunta;
+window.gerarGraficoPizza = gerarGraficoPizza;
+window.criarOverlayGrafico = criarOverlayGrafico;
+window.fecharOverlayGrafico = fecharOverlayGrafico;
+window.carregarAvaliacoesDaSala = carregarAvaliacoesDaSala;
+window.renderizarAvaliacoesGrid = renderizarAvaliacoesGrid;
+window.getCorPorMedia = getCorPorMedia;
+window.abrirDetalhesAvaliacao = abrirDetalhesAvaliacao;
+window.mostrarOverlayAvaliacao = mostrarOverlayAvaliacao;
+window.fecharOverlayAvaliacao = fecharOverlayAvaliacao;
+window.toggleDescricaoPergunta = toggleDescricaoPergunta;
+window.recarregarPerguntasSala = recarregarPerguntasSala;
+window.abrirOverlayPergunta = abrirOverlayPergunta;
+window.fecharOverlayPergunta = fecharOverlayPergunta;
+window.habilitarEdicaoPergunta = habilitarEdicaoPergunta;
+window.cancelarEdicaoPergunta = cancelarEdicaoPergunta;
+window.salvarEdicaoPergunta = salvarEdicaoPergunta;
+window.excluirPergunta = excluirPergunta;
+window.abrirOverlayNovaPergunta = abrirOverlayNovaPergunta;
+window.criarNovaPergunta = criarNovaPergunta;
+window.handleDragStart = handleDragStart;
+window.handleDragEnd = handleDragEnd;
+window.handleDragOver = handleDragOver;
+window.handleDrop = handleDrop;
+window.handleDragLeave = handleDragLeave;
+window.atualizarNumerosOrdem = atualizarNumerosOrdem;
+window.salvarOrdemPerguntas = salvarOrdemPerguntas;

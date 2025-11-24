@@ -21,10 +21,22 @@ try {
         case 'get_respostas':
             $salaId = isset($_GET['sala_id']) ? (int) $_GET['sala_id'] : 0;
             if ($salaId > 0) {
-                $stmt = $conexao->prepare('SELECT * FROM respostas WHERE ativo = true AND sala_id = :sala_id ORDER BY data_hora DESC');
+                $stmt = $conexao->prepare('
+                    SELECT r.*, p.descricao as pergunta_descricao, p.ordem_exibicao as pergunta_ordem 
+                    FROM respostas r 
+                    LEFT JOIN perguntas p ON r.pergunta_id = p.id 
+                    WHERE r.ativo = true AND r.sala_id = :sala_id 
+                    ORDER BY r.data_hora DESC
+                ');
                 $stmt->execute([':sala_id' => $salaId]);
             } else {
-                $stmt = $conexao->query('SELECT * FROM respostas WHERE ativo = true ORDER BY data_hora DESC');
+                $stmt = $conexao->query('
+                    SELECT r.*, p.descricao as pergunta_descricao, p.ordem_exibicao as pergunta_ordem 
+                    FROM respostas r 
+                    LEFT JOIN perguntas p ON r.pergunta_id = p.id 
+                    WHERE r.ativo = true 
+                    ORDER BY r.data_hora DESC
+                ');
             }
             $respostas = $stmt->fetchAll();
             echo json_encode($respostas);
@@ -54,14 +66,14 @@ try {
                 echo json_encode([]);
                 exit;
             }
-            $stmt = $conexao->prepare('SELECT id, descricao FROM perguntas WHERE sala_id = :sala_id AND ativo = true ORDER BY id');
+            $stmt = $conexao->prepare('SELECT id, descricao, ordem_exibicao FROM perguntas WHERE sala_id = :sala_id AND ativo = true ORDER BY ordem_exibicao');
             $stmt->execute([':sala_id' => $salaId]);
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
             break;
 
         case 'get_todas_perguntas':
-            $stmt = $conexao->query('SELECT id, descricao, sala_id FROM perguntas WHERE ativo = true ORDER BY sala_id, id');
+            $stmt = $conexao->query('SELECT id, descricao, sala_id, ordem_exibicao FROM perguntas WHERE ativo = true ORDER BY sala_id, ordem_exibicao');
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
             break;
@@ -182,8 +194,14 @@ try {
             }
             
             try {
-                $stmt = $conexao->prepare('INSERT INTO perguntas (descricao, sala_id) VALUES (:descricao, :sala_id)');
-                $stmt->execute([':descricao' => $descricao, ':sala_id' => $sala_id]);
+                // Busca a maior ordem_exibicao da sala
+                $stmtMax = $conexao->prepare('SELECT MAX(ordem_exibicao) as max_ordem FROM perguntas WHERE sala_id = :sala_id');
+                $stmtMax->execute([':sala_id' => $sala_id]);
+                $resultado = $stmtMax->fetch();
+                $proximaOrdem = ($resultado && $resultado['max_ordem'] !== null) ? $resultado['max_ordem'] + 1 : 1;
+                
+                $stmt = $conexao->prepare('INSERT INTO perguntas (descricao, sala_id, ordem_exibicao) VALUES (:descricao, :sala_id, :ordem_exibicao)');
+                $stmt->execute([':descricao' => $descricao, ':sala_id' => $sala_id, ':ordem_exibicao' => $proximaOrdem]);
                 echo json_encode(['success' => true, 'id' => $conexao->lastInsertId()]);
             } catch (Exception $e) {
                 http_response_code(500);
@@ -251,9 +269,46 @@ try {
             break;
 
         case 'get_all_feedbacks':
-            $stmt = $conexao->query('SELECT DISTINCT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\'');
+            $stmt = $conexao->query('SELECT DISTINCT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\' ');
             $feedbacks = $stmt->fetchAll();
             echo json_encode($feedbacks);
+            break;
+
+        case 'atualizar_ordem_perguntas':
+            $raw = file_get_contents('php://input');
+            $data = json_decode($raw, true);
+            
+            if (!is_array($data) || !isset($data['perguntas'])) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Dados inválidos']);
+                exit;
+            }
+            
+            try {
+                $conexao->beginTransaction();
+                $stmt = $conexao->prepare('UPDATE perguntas SET ordem_exibicao = :ordem WHERE id = :id');
+                
+                foreach ($data['perguntas'] as $pergunta) {
+                    if (!isset($pergunta['id']) || !isset($pergunta['ordem_exibicao'])) {
+                        $conexao->rollBack();
+                        http_response_code(400);
+                        echo json_encode(['error' => 'Pergunta com dados incompletos']);
+                        exit;
+                    }
+                    
+                    $stmt->execute([
+                        ':id' => (int) $pergunta['id'],
+                        ':ordem' => (int) $pergunta['ordem_exibicao']
+                    ]);
+                }
+                
+                $conexao->commit();
+                echo json_encode(['success' => true]);
+            } catch (Exception $e) {
+                $conexao->rollBack();
+                http_response_code(500);
+                echo json_encode(['error' => 'Erro ao atualizar ordem: ' . $e->getMessage()]);
+            }
             break;
 
         default:

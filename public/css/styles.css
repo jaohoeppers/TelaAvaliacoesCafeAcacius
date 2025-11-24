@@ -1,7 +1,7 @@
 :root {
-    --primary-color: #6f4e37; /* Cor de café */
-    --secondary-color: #f4a460; /* Laranja/Madeira claro */
-    --background-color: #f5f5dc; /* Bege */
+    --primary-color: #6f4e37;
+    --secondary-color: #f4a460;
+    --background-color: #f5f5dc;
     --text-color: #333;
     --white: #fff;
 }
@@ -73,7 +73,7 @@ button {
 }
 
 button:hover {
-    background-color: #5a3f2e; /* Tom mais escuro de café */
+    background-color: #5a3f2e;
 }
 
 #btn-avaliar {

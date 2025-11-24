@@ -74,7 +74,7 @@ body {
     }
     50% {
         transform: scale(1.02);
-        box-shadow: 0 6px 20px rgba(111, 78, 55, 0.3); /* Sombra com a cor primária */
+        box-shadow: 0 6px 20px rgba(111, 78, 55, 0.3);
     }
     100% {
         transform: scale(1);
@@ -95,7 +95,7 @@ body {
 }
 
 .rating_scale input[type="radio"] {
-    display: none; /* Esconde o botão de rádio real */
+    display: none;
 }
 
 .rating_scale label {
@@ -142,7 +142,7 @@ body {
 }
 
 .btn_enviar:hover {
-    background-color: #5a3f2e; /* Tom mais escuro de café */
+    background-color: #5a3f2e;
 }
 
 .page_footer {
@@ -197,8 +197,8 @@ body {
 }
 
 .spinner {
-    border: 8px solid #f3f3f3; /* Cinza claro */
-    border-top: 8px solid var(--primary-color); /* Cor do café */
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid var(--primary-color);
     border-radius: 50%;
     width: 60px;
     height: 60px;
