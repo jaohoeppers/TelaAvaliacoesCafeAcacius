@@ -1,14 +1,18 @@
 <?php
 
+// Realiza a importação dos arquivos de conexão com o banco de dados
 require_once '../conexao.php';
-require_once '../config.php';
 
+// Cria uma instância da conexão com o banco de dados
 $conexao = (new conexao())->getConexao();
 
+// Busca a ação a ser realizada
 $action = $_GET['action'] ?? '';
 
+// Verificar qual ação deve ser executada
 try {
     switch ($action) {
+        // Valida a senha de administrador
         case 'valida_senha':
             $senha = $_GET['senha'] ?? '';
             if ($senha === senhaAdmin) {
@@ -18,6 +22,7 @@ try {
             }
             break;
 
+        // Busca as respostas, podendo filtrar por sala
         case 'get_respostas':
             $salaId = isset($_GET['sala_id']) ? (int) $_GET['sala_id'] : 0;
             if ($salaId > 0) {
@@ -42,6 +47,7 @@ try {
             echo json_encode($respostas);
             break;
 
+        // Busca o feedback associado a uma avaliação
         case 'get_feedback':
             $idRespostas = isset($_GET['id_respostas']) ? $_GET['id_respostas'] : '';
             if (empty($idRespostas)) {
@@ -54,12 +60,14 @@ try {
             echo json_encode($feedback ?: null);
             break;
 
-        case 'get_salas':
+        
+            case 'get_salas':
             $stmt = $conexao->query('SELECT id, descricao FROM salas WHERE ativo = true ORDER BY descricao');
             $salas = $stmt->fetchAll();
             echo json_encode($salas);
             break;
 
+        // Busca as perguntas de uma sala
         case 'get_perguntas':
             $salaId = isset($_GET['sala_id']) ? (int) $_GET['sala_id'] : 0;
             if ($salaId <= 0) {
@@ -72,12 +80,14 @@ try {
             echo json_encode($perguntas);
             break;
 
+        // Busca todas as perguntas
         case 'get_todas_perguntas':
             $stmt = $conexao->query('SELECT id, descricao, sala_id, ordem_exibicao FROM perguntas WHERE ativo = true ORDER BY sala_id, ordem_exibicao');
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
             break;
 
+        // Busca as respostas de uma pergunta
         case 'get_respostas_por_pergunta':
             $perguntaId = isset($_GET['pergunta_id']) ? (int) $_GET['pergunta_id'] : 0;
             if ($perguntaId <= 0) {
@@ -90,6 +100,7 @@ try {
             echo json_encode($respostas);
             break;
         
+        // Salva as respostas enviadas
         case 'salvar_respostas':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -141,6 +152,7 @@ try {
 
             break;
 
+        // Salva o feedback enviado
         case 'salvar_feedback':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -174,6 +186,7 @@ try {
             echo json_encode(['success' => true]);
             break;
 
+        // Cria uma nova pergunta
         case 'criar_pergunta':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -209,6 +222,7 @@ try {
             }
             break;
 
+        // Edita uma pergunta existente
         case 'editar_pergunta':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -238,6 +252,7 @@ try {
             }
             break;
 
+        // Inativa uma pergunta
         case 'excluir_pergunta':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -268,12 +283,14 @@ try {
             }
             break;
 
+        // Busca todos os feedbacks
         case 'get_all_feedbacks':
-            $stmt = $conexao->query('SELECT DISTINCT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\' ');
+            $stmt = $conexao->query('SELECT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\' ');
             $feedbacks = $stmt->fetchAll();
             echo json_encode($feedbacks);
             break;
 
+        // Atualiza a ordem de exibição das perguntas
         case 'atualizar_ordem_perguntas':
             $raw = file_get_contents('php://input');
             $data = json_decode($raw, true);
@@ -311,14 +328,17 @@ try {
             }
             break;
 
+        // Ação inválida
         default:
             echo json_encode(['error' => 'Ação inválida']);
             break;
     }
 } catch (Exception $e) {
     if (isset($conexao) && $conexao->inTransaction()) {
+        // Reverte a transação em caso de erro
         $conexao->rollBack();
     }
+    // Dispara um erro genérico
     http_response_code(500);
     echo json_encode(['error' => 'Erro no servidor: ' . $e->getMessage()]);
 }
