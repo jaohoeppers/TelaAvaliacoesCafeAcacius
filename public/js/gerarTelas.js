@@ -1,5 +1,11 @@
 // Import para buscar a base da requisição http
 import { http } from './config.js';
+// Import dos modelos
+import { Sala } from '../models/Sala.js';
+import { Pergunta } from '../models/Pergunta.js';
+import { Resposta } from '../models/Resposta.js';
+import { Feedback } from '../models/Feedback.js';
+import { Avaliacao } from '../models/Avaliacao.js';
 
 // Variáveis globais para controle de paginação
 let todasAsRespostas = [];
@@ -47,23 +53,29 @@ export async function carregarEstatisticasGerais() {
     const dataInicial = document.getElementById('dataInicialGeral')?.value;
     const dataFinal = document.getElementById('dataFinalGeral')?.value;
     
-    // Busca todas as respostas e salas
+    // Busca todas as respostas, salas e feedbacks
     Promise.all([
         fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas`).then(r => r.json()),
-        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`).then(r => r.json())
+        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`).then(r => r.json()),
+        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_all_feedbacks`).then(r => r.json())
     ])
-    .then(([respostas, salas]) => {
+    .then(([respostasJson, salasJson, feedbacksJson]) => {
+        // Converte JSON para objetos usando fromJson
+        const respostas = Resposta.fromJsonArray(respostasJson);
+        const salas = Sala.fromJsonArray(salasJson);
+        const feedbacks = feedbacksJson || [];
+        
         // Aplica filtro de data se necessário
         let respostasFiltradas = respostas;
         if (dataInicial && dataFinal) {
             respostasFiltradas = respostas.filter(r => {
-                const dataResposta = new Date(r.data_hora).toISOString().split('T')[0];
+                const dataResposta = r.getDataISO();
                 return dataResposta >= dataInicial && dataResposta <= dataFinal;
             });
         }
         
         // Calcula estatísticas
-        const stats = calcularEstatisticasGerais(respostasFiltradas, salas, dataInicial, dataFinal);
+        const stats = calcularEstatisticasGerais(respostasFiltradas, salas, feedbacks, dataInicial, dataFinal);
         renderizarEstatisticasGerais(stats, dataInicial, dataFinal);
     })
     .catch(error => {
@@ -73,7 +85,7 @@ export async function carregarEstatisticasGerais() {
 }
 
 // Função para calcular estatísticas gerais com base nas respostas e salas
-export function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFinal) {
+export function calcularEstatisticasGerais(respostas, salas, feedbacks, dataInicial, dataFinal) {
     const stats = {
         totalAvaliacoes: 0,
         avaliacoesPorSala: {},
@@ -95,7 +107,7 @@ export function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFi
         avaliacoesUnicas.add(r.id_respostas);
         
         // Conta por sala
-        if (stats.avaliacoesPorSala[r.sala_id]) {
+        if (stats.mediaPorSala[r.sala_id]) {
             stats.mediaPorSala[r.sala_id].soma += parseFloat(r.nota);
             stats.mediaPorSala[r.sala_id].count++;
         }
@@ -129,21 +141,11 @@ export function calcularEstatisticasGerais(respostas, salas, dataInicial, dataFi
     // Conta apenas feedbacks das avaliações no período filtrado
     const idsRespostasFiltradas = new Set(respostas.map(r => r.id_respostas));
     
-    // Busca feedbacks para contar avaliações com feedback
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_all_feedbacks`)
-        .then(r => r.json())
-        .then(feedbacks => {
-            if (feedbacks && Array.isArray(feedbacks)) {
-                // Filtra apenas feedbacks cujos id_respostas estão nas respostas filtradas
-                const feedbacksFiltrados = feedbacks.filter(f => idsRespostasFiltradas.has(f.id_respostas));
-                stats.avaliacoesComFeedback = feedbacksFiltrados.length;
-                renderizarEstatisticasGerais(stats, dataInicial, dataFinal);
-            }
-        })
-        .catch(() => {
-            // Se não conseguir buscar feedbacks, mantém 0
-            stats.avaliacoesComFeedback = 0;
-        });
+    // Filtra feedbacks que estão nas respostas filtradas
+    if (feedbacks && Array.isArray(feedbacks)) {
+        const feedbacksFiltrados = feedbacks.filter(f => idsRespostasFiltradas.has(f.id_respostas));
+        stats.avaliacoesComFeedback = feedbacksFiltrados.length;
+    }
     
     return stats;
 }
@@ -262,7 +264,10 @@ export function gerarTelaSalas() {
     // Busca todas as salas
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`)
         .then(response => response.json())
-        .then(salas => {
+        .then(salasJson => {
+            // Converte JSON para objetos usando fromJson
+            const salas = Sala.fromJsonArray(salasJson);
+            
             const containerBotoes = document.createElement('div');
             containerBotoes.className = 'salas-grid';
             
@@ -363,7 +368,9 @@ export function abrirDetalhesSala(salaId, salaNome) {
 export function carregarPerguntasDaSala(salaId) {
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
-        .then(perguntas => {
+        .then(perguntasJson => {
+            // Converte JSON para objetos usando fromJson
+            const perguntas = Pergunta.fromJsonArray(perguntasJson);
             renderizarPerguntasGrid(perguntas, salaId);
         })
         .catch(error => {
@@ -588,7 +595,9 @@ export function inativarSala(salaId, salaNome) {
 export function carregarEstatisticasDaSala(salaId) {
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
-        .then(perguntas => {
+        .then(perguntasJson => {
+            // Converte JSON para objetos usando fromJson
+            const perguntas = Pergunta.fromJsonArray(perguntasJson);
             renderizarEstatisticasGrid(perguntas);
         })
         .catch(error => {
@@ -640,7 +649,10 @@ export function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
     // Busca as respostas da pergunta
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas_por_pergunta&pergunta_id=${perguntaId}`)
         .then(response => response.json())
-        .then(respostas => {
+        .then(respostasJson => {
+            // Converte JSON para objetos usando fromJson
+            const respostas = Resposta.fromJsonArray(respostasJson);
+            
             if (respostas.length === 0) {
                 alert('Nenhuma resposta encontrada para esta pergunta.');
                 return;
@@ -650,7 +662,7 @@ export function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
             let respostasFiltradas = respostas;
             if (dataInicial && dataFinal) {
                 respostasFiltradas = respostas.filter(resposta => {
-                    const dataResposta = new Date(resposta.data_hora).toISOString().split('T')[0];
+                    const dataResposta = resposta.getDataISO();
                     return dataResposta >= dataInicial && dataResposta <= dataFinal;
                 });
                 
@@ -835,7 +847,10 @@ export function fecharOverlayGrafico() {
 export function carregarAvaliacoesDaSala(salaId) {
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas&sala_id=${salaId}`)
         .then(response => response.json())
-        .then(respostas => {
+        .then(respostasJson => {
+            // Converte JSON para objetos usando fromJson
+            const respostas = Resposta.fromJsonArray(respostasJson);
+            
             if (respostas.length === 0) {
                 document.getElementById('avaliacoesConteudo').innerHTML = '<p>Nenhuma avaliação encontrada.</p>';
                 return;
@@ -849,7 +864,7 @@ export function carregarAvaliacoesDaSala(salaId) {
             let respostasFiltradas = respostas;
             if (dataInicial && dataFinal) {
                 respostasFiltradas = respostas.filter(resposta => {
-                    const dataResposta = new Date(resposta.data_hora).toISOString().split('T')[0];
+                    const dataResposta = resposta.getDataISO();
                     return dataResposta >= dataInicial && dataResposta <= dataFinal;
                 });
                 
@@ -859,16 +874,10 @@ export function carregarAvaliacoesDaSala(salaId) {
                 }
             }
             
-            // Agrupa respostas por id_respostas
-            const avaliacoes = {};
-            respostasFiltradas.forEach(resposta => {
-                if (!avaliacoes[resposta.id_respostas]) {
-                    avaliacoes[resposta.id_respostas] = [];
-                }
-                avaliacoes[resposta.id_respostas].push(resposta);
-            });
+            // Agrupa respostas por id_respostas usando o método do modelo Avaliacao
+            const respostasAgrupadas = Avaliacao.agruparRespostasPorAvaliacao(respostasFiltradas);
             
-            renderizarAvaliacoesGrid(avaliacoes);
+            renderizarAvaliacoesGrid(respostasAgrupadas);
         })
         .catch(error => {
             console.error('Erro ao carregar avaliações:', error);
@@ -937,7 +946,9 @@ export function abrirDetalhesAvaliacao(idAvaliacao, numeroAvaliacao, respostas, 
     // Busca o feedback se existir
     fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_feedback&id_respostas=${idAvaliacao}`)
         .then(response => response.json())
-        .then(feedback => {
+        .then(feedbackJson => {
+            // Converte JSON para objeto usando fromJson
+            const feedback = Feedback.fromJson(feedbackJson);
             mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedback);
         })
         .catch(error => {
@@ -956,8 +967,8 @@ export function mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedb
     // Organiza respostas por pergunta
     let respostasHTML = '';
     respostas.forEach(resposta => {
-        const ordemExibicao = resposta.pergunta_ordem || resposta.pergunta_id;
-        const descricao = resposta.pergunta_descricao || 'Descrição não disponível';
+        const ordemExibicao = resposta.perguntaOrdem || resposta.perguntaId;
+        const descricao = resposta.perguntaDescricao || 'Descrição não disponível';
         respostasHTML += `
             <div class="resposta-item" onclick="toggleDescricaoPergunta(this)" style="cursor: pointer;" title="Clique para ver a descrição da pergunta">
                 <span class="resposta-pergunta">Pergunta #${ordemExibicao}</span>
@@ -973,7 +984,7 @@ export function mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedb
     
     // Feedback
     let feedbackHTML = '';
-    if (feedback && feedback.descricao) {
+    if (feedback && feedback.hasDescricao()) {
         feedbackHTML = `
             <div class="avaliacao-feedback">
                 <h4>Feedback do Cliente</h4>
@@ -991,13 +1002,7 @@ export function mostrarOverlayAvaliacao(numeroAvaliacao, respostas, media, feedb
             <div class="overlay-avaliacao-body">
                 <div class="avaliacao-info">
                     <p class="avaliacao-media-destaque">Média: <strong style="color: ${corMedia}">${media}</strong></p>
-                    <p class="avaliacao-data-completa">${new Date(respostas[0].data_hora).toLocaleString('pt-BR', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    })}</p>
+                    <p class="avaliacao-data-completa">${respostas[0].getDataFormatada()}</p>
                 </div>
                 
                 ${feedbackHTML}

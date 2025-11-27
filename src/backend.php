@@ -66,7 +66,7 @@ try {
                 echo json_encode(null);
                 exit;
             }
-            $stmt = $conexao->prepare('SELECT descricao FROM feedback WHERE id_respostas = :id_respostas LIMIT 1');
+            $stmt = $conexao->prepare('SELECT * FROM feedback WHERE id_respostas = :id_respostas LIMIT 1');
             $stmt->execute([':id_respostas' => $idRespostas]);
             $feedback = $stmt->fetch();
             echo json_encode($feedback ?: null);
@@ -74,7 +74,7 @@ try {
 
         
             case 'get_salas':
-            $stmt = $conexao->query('SELECT id, descricao FROM salas WHERE ativo = true ORDER BY descricao');
+            $stmt = $conexao->query('SELECT * FROM salas WHERE ativo = true ORDER BY descricao');
             $salas = $stmt->fetchAll();
             echo json_encode($salas);
             break;
@@ -86,7 +86,7 @@ try {
                 echo json_encode([]);
                 exit;
             }
-            $stmt = $conexao->prepare('SELECT id, descricao, ordem_exibicao FROM perguntas WHERE sala_id = :sala_id AND ativo = true ORDER BY ordem_exibicao');
+            $stmt = $conexao->prepare('SELECT * FROM perguntas WHERE sala_id = :sala_id AND ativo = true ORDER BY ordem_exibicao');
             $stmt->execute([':sala_id' => $salaId]);
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
@@ -94,7 +94,7 @@ try {
 
         // Busca todas as perguntas
         case 'get_todas_perguntas':
-            $stmt = $conexao->query('SELECT id, descricao, sala_id, ordem_exibicao FROM perguntas WHERE ativo = true ORDER BY sala_id, ordem_exibicao');
+            $stmt = $conexao->query('SELECT * FROM perguntas WHERE ativo = true ORDER BY sala_id, ordem_exibicao');
             $perguntas = $stmt->fetchAll();
             echo json_encode($perguntas);
             break;
@@ -106,7 +106,7 @@ try {
                 echo json_encode([]);
                 exit;
             }
-            $stmt = $conexao->prepare('SELECT id, sala_id, nota, data_hora FROM respostas WHERE pergunta_id = :pergunta_id AND ativo = true ORDER BY data_hora DESC');
+            $stmt = $conexao->prepare('SELECT * FROM respostas WHERE pergunta_id = :pergunta_id AND ativo = true ORDER BY data_hora DESC');
             $stmt->execute([':pergunta_id' => $perguntaId]);
             $respostas = $stmt->fetchAll();
             echo json_encode($respostas);
@@ -297,7 +297,7 @@ try {
 
         // Busca todos os feedbacks
         case 'get_all_feedbacks':
-            $stmt = $conexao->query('SELECT id_respostas FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\' ');
+            $stmt = $conexao->query('SELECT * FROM feedback WHERE id_respostas IS NOT NULL AND id_respostas != \'\'');
             $feedbacks = $stmt->fetchAll();
             echo json_encode($feedbacks);
             break;
