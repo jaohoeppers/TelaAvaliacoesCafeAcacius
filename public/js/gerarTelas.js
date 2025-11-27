@@ -706,7 +706,7 @@ export function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico,
     overlay.className = 'overlay-grafico';
     
     // Cores conforme a escala da imagem (Improvável 0 -> Muito Provável 10)
-    const cores = [
+    const coresCompletas = [
         '#FF0000', // 0 - Vermelho (Improvável)
         '#CC0000', // 1 - Vermelho escuro
         '#FF4500', // 2 - Laranja avermelhado
@@ -720,67 +720,6 @@ export function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico,
         '#32CD32'  // 10 - Verde (Muito Provável)
     ];
     
-    // Se houver apenas uma nota, desenha um círculo completo
-    const raio = 120;
-    const centroX = 150;
-    const centroY = 150;
-    
-    let segmentosSVG = '';
-    
-    if (dadosGrafico.length === 1) {
-        // Desenha um círculo completo
-        const item = dadosGrafico[0];
-        segmentosSVG = `
-            <circle cx="${centroX}" cy="${centroY}" r="${raio}" 
-                    fill="${cores[item.nota]}" 
-                    stroke="white" 
-                    stroke-width="2"
-                    class="grafico-segmento">
-                <title>Nota ${item.nota}: ${item.quantidade} respostas (${item.percentual}%)</title>
-            </circle>
-        `;
-    } else {
-        // Desenha segmentos normalmente
-        let anguloInicial = 0;
-        dadosGrafico.forEach(item => {
-            const angulo = (item.quantidade / totalRespostas) * 360;
-            const anguloFinal = anguloInicial + angulo;
-            
-            const x1 = centroX + raio * Math.cos((anguloInicial - 90) * Math.PI / 180);
-            const y1 = centroY + raio * Math.sin((anguloInicial - 90) * Math.PI / 180);
-            const x2 = centroX + raio * Math.cos((anguloFinal - 90) * Math.PI / 180);
-            const y2 = centroY + raio * Math.sin((anguloFinal - 90) * Math.PI / 180);
-            
-            const largeArc = angulo > 180 ? 1 : 0;
-            
-            segmentosSVG += `
-                <path d="M ${centroX} ${centroY} L ${x1} ${y1} A ${raio} ${raio} 0 ${largeArc} 1 ${x2} ${y2} Z" 
-                      fill="${cores[item.nota]}" 
-                      stroke="white" 
-                      stroke-width="2"
-                      class="grafico-segmento"
-                      data-nota="${item.nota}"
-                      data-qtd="${item.quantidade}"
-                      data-perc="${item.percentual}">
-                    <title>Nota ${item.nota}: ${item.quantidade} respostas (${item.percentual}%)</title>
-                </path>
-            `;
-            
-            anguloInicial = anguloFinal;
-        });
-    }
-    
-    // Cria a legenda
-    let legendaHTML = '';
-    dadosGrafico.forEach(item => {
-        legendaHTML += `
-            <div class="legenda-item">
-                <span class="legenda-cor" style="background-color: ${cores[item.nota]}"></span>
-                <span class="legenda-texto">Nota ${item.nota}: ${item.quantidade} (${item.percentual}%)</span>
-            </div>
-        `;
-    });
-    
     // Texto do período filtrado
     let periodoTexto = '';
     if (dataInicial && dataFinal) {
@@ -788,6 +727,9 @@ export function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico,
         const dataFinalFormatada = new Date(dataFinal + 'T00:00:00').toLocaleDateString('pt-BR');
         periodoTexto = `<p class="grafico-periodo">Período: ${dataInicialFormatada} a ${dataFinalFormatada}</p>`;
     }
+    
+    // Gera um ID único para o canvas
+    const canvasId = `chartCanvas_${perguntaId}_${Date.now()}`;
     
     overlay.innerHTML = `
         <div class="overlay-grafico-conteudo">
@@ -801,19 +743,80 @@ export function criarOverlayGrafico(perguntaId, perguntaDescricao, dadosGrafico,
                 <p class="grafico-total">Total de respostas: <strong>${totalRespostas}</strong></p>
                 
                 <div class="grafico-container">
-                    <svg width="300" height="300" viewBox="0 0 300 300">
-                        ${segmentosSVG}
-                    </svg>
-                </div>
-                
-                <div class="grafico-legenda">
-                    ${legendaHTML}
+                    <canvas id="${canvasId}"></canvas>
                 </div>
             </div>
         </div>
     `;
     
     document.body.appendChild(overlay);
+    
+    // Aguarda um momento para o DOM estar pronto
+    setTimeout(() => {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        
+        // Prepara os dados para o Chart.js
+        const labels = dadosGrafico.map(item => `Nota ${item.nota}`);
+        const data = dadosGrafico.map(item => item.quantidade);
+        const backgroundColors = dadosGrafico.map(item => coresCompletas[item.nota]);
+        
+        // Cria o gráfico com Chart.js
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12
+                            },
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.labels.map((label, i) => {
+                                        const dataset = data.datasets[0];
+                                        const value = dataset.data[i];
+                                        const percentage = ((value / totalRespostas) * 100).toFixed(1);
+                                        return {
+                                            text: `${label}: ${value} (${percentage}%)`,
+                                            fillStyle: dataset.backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const percentage = ((value / totalRespostas) * 100).toFixed(1);
+                                return `${label}: ${value} respostas (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }, 100);
 }
 
 // Função para fechar o overlay do gráfico
