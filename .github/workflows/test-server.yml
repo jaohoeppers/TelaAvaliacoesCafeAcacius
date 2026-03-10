@@ -38,26 +38,26 @@ jobs:
     - name: Start PHP Built-in Server
       run: |
         cd public
-        php -S 0.0.0.0:80 &
+        php -S 0.0.0.0:8080 &
         sleep 3
       continue-on-error: true
     
-    - name: Start PHP Server on port 80 (fallback)
+    - name: Start PHP Server on port 8080 (fallback)
       run: |
         cd public
-        php -S 0.0.0.0:80 &
+        php -S 0.0.0.0:8080 &
         sleep 3
     
-    - name: Test if index.html is accessible (port 80)
+    - name: Test if index.html is accessible (port 8080)
       run: |
-        curl -f http://localhost:80/index.html || echo "Port 80 not accessible"
+        curl -f http://localhost:8080/index.html || echo "Port 8080 not accessible"
       continue-on-error: true
     
-    - name: Test if index.html is accessible (port 80)
+    - name: Test if index.html is accessible (port 8080)
       run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/index.html)
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/index.html)
         if [ $response -eq 200 ]; then
-          echo "✅ Success! index.html is accessible on port 80"
+          echo "✅ Success! index.html is accessible on port 8080"
           echo "HTTP Status Code: $response"
         else
           echo "❌ Failed! index.html returned status code: $response"
@@ -66,7 +66,7 @@ jobs:
     
     - name: Test index.html content
       run: |
-        content=$(curl -s http://localhost:80/index.html)
+        content=$(curl -s http://localhost:8080/index.html)
         if echo "$content" | grep -q "Sistema de Avaliações"; then
           echo "✅ index.html content verified successfully"
         else
@@ -78,4 +78,4 @@ jobs:
       run: |
         echo "=== Checking for PHP errors ==="
         ps aux | grep php || echo "No PHP processes found"
-        netstat -tuln | grep -E '(80)' || echo "Ports 80 not listening"
+        netstat -tuln | grep -E '(8080)' || echo "Ports 8080 not listening"
