@@ -49,7 +49,7 @@ jobs:
     
     - name: Importar dump SQL
       run: |
-        PGPASSWORD=123456 psql -h localhost -U consultas -d avaliacoes -f sql/dump-avaliacoes-202512042105.sql
+        PGPASSWORD=123456 psql -h localhost -U consultas -d avaliacoes -f sql/dump.sql
         echo "✅ Banco de dados importado com sucesso"
     
     - name: Verificar tabelas
