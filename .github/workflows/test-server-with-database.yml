@@ -11,7 +11,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:13
+        image: postgres:18
         env:
           POSTGRES_DB: avaliacoes
           POSTGRES_USER: consultas
