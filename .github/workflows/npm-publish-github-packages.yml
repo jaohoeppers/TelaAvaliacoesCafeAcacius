@@ -96,14 +96,14 @@ jobs:
 
       - name: Iniciar servidor PHP
         run: |
-          php -S localhost:8000 -t public &
+          sudo php -S localhost:80 -t public &
           SERVER_PID=$!
           echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
           sleep 3
 
       - name: Testar endpoint
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/index.html)
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/index.html)
           if [ $response -eq 200 ]; then
             echo "✓ Servidor respondeu com sucesso (HTTP $response)"
           else

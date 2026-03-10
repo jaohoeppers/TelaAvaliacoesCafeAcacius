@@ -73,15 +73,15 @@ jobs:
       - name: Iniciar servidor PHP
         run: |
           cd public
-          php -S localhost:8080 ../src/backend.php &
+          sudo php -S localhost:80 ../src/backend.php &
           sleep 3
-          echo "Servidor iniciado na porta 8080"
+          echo "Servidor iniciado na porta 80"
 
       - name: Teste 1 - Validar senha (GET)
         run: |
           echo "=== Testando validação de senha ==="
           # Senha correta
-          response=$(curl -s "http://localhost:8080/?action=valida_senha&senha=testadmin123")
+          response=$(curl -s "http://localhost:80/?action=valida_senha&senha=testadmin123")
           echo "Resposta senha correta: $response"
           if echo "$response" | grep -q '"valid":true'; then
             echo "✓ Senha correta validada com sucesso"
@@ -91,7 +91,7 @@ jobs:
           fi
           
           # Senha incorreta
-          response=$(curl -s "http://localhost:8080/?action=valida_senha&senha=senhaerrada")
+          response=$(curl -s "http://localhost:80/?action=valida_senha&senha=senhaerrada")
           echo "Resposta senha incorreta: $response"
           if echo "$response" | grep -q '"valid":false'; then
             echo "✓ Senha incorreta rejeitada corretamente"
@@ -103,7 +103,7 @@ jobs:
       - name: Teste 2 - Buscar salas (GET)
         run: |
           echo "=== Testando busca de salas ==="
-          response=$(curl -s "http://localhost:8080/?action=get_salas")
+          response=$(curl -s "http://localhost:80/?action=get_salas")
           echo "Resposta: $response"
           if echo "$response" | grep -q '\[' && [ ${#response} -gt 2 ]; then
             echo "✓ Salas retornadas com sucesso"
@@ -115,7 +115,7 @@ jobs:
       - name: Teste 3 - Buscar perguntas de uma sala (GET)
         run: |
           echo "=== Testando busca de perguntas ==="
-          response=$(curl -s "http://localhost:8080/?action=get_perguntas&sala_id=999")
+          response=$(curl -s "http://localhost:80/?action=get_perguntas&sala_id=999")
           echo "Resposta: $response"
           if echo "$response" | grep -q 'Pergunta Teste'; then
             echo "✓ Perguntas da sala retornadas com sucesso"
@@ -127,7 +127,7 @@ jobs:
       - name: Teste 4 - Buscar todas as perguntas (GET)
         run: |
           echo "=== Testando busca de todas as perguntas ==="
-          response=$(curl -s "http://localhost:8080/?action=get_todas_perguntas")
+          response=$(curl -s "http://localhost:80/?action=get_todas_perguntas")
           echo "Resposta: $response"
           if echo "$response" | grep -q '\['; then
             echo "✓ Todas as perguntas retornadas com sucesso"
@@ -142,7 +142,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"descricao":"Nova Sala Teste"}' \
-            "http://localhost:8080/?action=criar_sala")
+            "http://localhost:80/?action=criar_sala")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Sala criada com sucesso"
@@ -157,7 +157,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"descricao":"Nova Pergunta Teste","sala_id":999}' \
-            "http://localhost:8080/?action=criar_pergunta")
+            "http://localhost:80/?action=criar_pergunta")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Pergunta criada com sucesso"
@@ -174,7 +174,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d "[{\"pergunta_id\":9991,\"sala_id\":999,\"nota\":5,\"data_hora\":\"$timestamp\",\"id_respostas\":\"$uuid\"},{\"pergunta_id\":9992,\"sala_id\":999,\"nota\":4,\"data_hora\":\"$timestamp\",\"id_respostas\":\"$uuid\"}]" \
-            "http://localhost:8080/?action=salvar_respostas")
+            "http://localhost:80/?action=salvar_respostas")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Respostas salvas com sucesso"
@@ -187,7 +187,7 @@ jobs:
       - name: Teste 8 - Buscar respostas (GET)
         run: |
           echo "=== Testando busca de respostas ==="
-          response=$(curl -s "http://localhost:8080/?action=get_respostas&sala_id=999")
+          response=$(curl -s "http://localhost:80/?action=get_respostas&sala_id=999")
           echo "Resposta: $response"
           if echo "$response" | grep -q '\['; then
             echo "✓ Respostas retornadas com sucesso"
@@ -203,7 +203,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d "{\"descricao\":\"Feedback de teste automatizado\",\"id_respostas\":\"$uuid_respostas\"}" \
-            "http://localhost:8080/?action=salvar_feedback")
+            "http://localhost:80/?action=salvar_feedback")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Feedback salvo com sucesso"
@@ -216,7 +216,7 @@ jobs:
         run: |
           echo "=== Testando busca de feedback ==="
           uuid_respostas="${UUID_RESPOSTAS:-test-uuid-123}"
-          response=$(curl -s "http://localhost:8080/?action=get_feedback&id_respostas=$uuid_respostas")
+          response=$(curl -s "http://localhost:80/?action=get_feedback&id_respostas=$uuid_respostas")
           echo "Resposta: $response"
           if echo "$response" | grep -q 'Feedback de teste'; then
             echo "✓ Feedback retornado com sucesso"
@@ -227,7 +227,7 @@ jobs:
       - name: Teste 11 - Buscar todos os feedbacks (GET)
         run: |
           echo "=== Testando busca de todos os feedbacks ==="
-          response=$(curl -s "http://localhost:8080/?action=get_all_feedbacks")
+          response=$(curl -s "http://localhost:80/?action=get_all_feedbacks")
           echo "Resposta: $response"
           if echo "$response" | grep -q '\['; then
             echo "✓ Feedbacks retornados com sucesso"
@@ -242,7 +242,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"id":9991,"descricao":"Pergunta Teste Editada"}' \
-            "http://localhost:8080/?action=editar_pergunta")
+            "http://localhost:80/?action=editar_pergunta")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Pergunta editada com sucesso"
@@ -257,7 +257,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"perguntas":[{"id":9991,"ordem_exibicao":2},{"id":9992,"ordem_exibicao":1}]}' \
-            "http://localhost:8080/?action=atualizar_ordem_perguntas")
+            "http://localhost:80/?action=atualizar_ordem_perguntas")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Ordem atualizada com sucesso"
@@ -272,7 +272,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"id":9992}' \
-            "http://localhost:8080/?action=excluir_pergunta")
+            "http://localhost:80/?action=excluir_pergunta")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Pergunta excluída com sucesso"
@@ -287,7 +287,7 @@ jobs:
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d '{"id":999}' \
-            "http://localhost:8080/?action=inativar_sala")
+            "http://localhost:80/?action=inativar_sala")
           echo "Resposta: $response"
           if echo "$response" | grep -q '"success":true'; then
             echo "✓ Sala inativada com sucesso"
@@ -299,7 +299,7 @@ jobs:
       - name: Teste 16 - Ação inválida (GET)
         run: |
           echo "=== Testando ação inválida ==="
-          response=$(curl -s "http://localhost:8080/?action=acao_inexistente")
+          response=$(curl -s "http://localhost:80/?action=acao_inexistente")
           echo "Resposta: $response"
           if echo "$response" | grep -q 'inválida'; then
             echo "✓ Ação inválida tratada corretamente"
