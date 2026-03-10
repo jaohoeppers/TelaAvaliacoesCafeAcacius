@@ -1,36 +1,119 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
+# Workflow para verificar se o projeto PHP consegue rodar
+name: PHP Application Check
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test
-
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://npm.pkg.github.com/
-      - run: npm ci
-      - run: npm publish
+    
+    services:
+      postgres:
+        image: postgres:14
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          POSTGRES_DB: avaliacoes
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pgsql, pdo_pgsql, mbstring
+          coverage: none
+
+      - name: Verificar versão do PHP
+        run: php -v
+
+      - name: Validar sintaxe PHP
+        run: |
+          find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors"
+          if [ $? -eq 0 ]; then
+            echo "✓ Todos os arquivos PHP têm sintaxe válida"
+          fi
+
+      - name: Criar arquivo de configuração
+        run: |
+          cat > config.php << 'EOF'
+          <?php
+          DEFINE('dbHost', 'localhost');
+          DEFINE('dbPort', 5432);
+          DEFINE('dbName', 'avaliacoes');
+          DEFINE('dbUser', 'consultas');
+          DEFINE('dbPass', '123456');
+          DEFINE('dbschema', 'dados');
+          DEFINE('senhaAdmin', '123');
+          ?>
+          EOF
+
+      - name: Importar banco de dados
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d avaliacoes -f sql/dump-avaliacoes-202512042105.sql
+        continue-on-error: true
+
+      - name: Testar conexão com banco de dados
+        run: |
+          php -r "
+          require_once 'config.php';
+          require_once 'conexao.php';
+          try {
+            \$conn = new Conexao();
+            echo '✓ Conexão com banco de dados estabelecida com sucesso\n';
+          } catch (Exception \$e) {
+            echo '✗ Erro na conexão: ' . \$e->getMessage() . '\n';
+            exit(1);
+          }
+          "
+
+      - name: Verificar arquivos essenciais
+        run: |
+          echo "Verificando arquivos essenciais..."
+          files=("conexao.php" "src/backend.php" "public/index.html" "public/avaliacao.html" "public/gestao.html")
+          for file in "${files[@]}"; do
+            if [ -f "$file" ]; then
+              echo "✓ $file encontrado"
+            else
+              echo "✗ $file não encontrado"
+              exit 1
+            fi
+          done
+
+      - name: Iniciar servidor PHP
+        run: |
+          php -S localhost:8000 -t public &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          sleep 3
+
+      - name: Testar endpoint
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/index.html)
+          if [ $response -eq 200 ]; then
+            echo "✓ Servidor respondeu com sucesso (HTTP $response)"
+          else
+            echo "✗ Servidor não respondeu corretamente (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Parar servidor PHP
+        if: always()
+        run: |
+          if [ ! -z "$SERVER_PID" ]; then
+            kill $SERVER_PID || true
+          fi

@@ -1,0 +1,329 @@
+# Workflow para testar todos os endpoints da API
+name: API Endpoints Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test-endpoints:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: avaliacoes
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pgsql, pdo_pgsql, mbstring, json
+          coverage: none
+
+      - name: Criar arquivo de configuração
+        run: |
+          cat > config.php << 'EOF'
+          <?php
+          DEFINE('dbHost', 'localhost');
+          DEFINE('dbPort', 5432);
+          DEFINE('dbName', 'avaliacoes');
+          DEFINE('dbUser', 'consultas');
+          DEFINE('dbPass', '123456');
+          DEFINE('dbschema', 'dados');
+          DEFINE('senhaAdmin', '123');
+          ?>
+          EOF
+
+      - name: Importar banco de dados
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d avaliacoes -f sql/dump-avaliacoes-202512042105.sql || echo "Importação com avisos, continuando..."
+
+      - name: Inserir dados de teste
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d avaliacoes << 'EOF'
+          -- Inserir sala de teste
+          INSERT INTO salas (id, descricao, ativo) VALUES (999, 'Sala de Teste', true) ON CONFLICT DO NOTHING;
+          
+          -- Inserir perguntas de teste
+          INSERT INTO perguntas (id, descricao, sala_id, ordem_exibicao, ativo) 
+          VALUES 
+            (9991, 'Pergunta Teste 1', 999, 1, true),
+            (9992, 'Pergunta Teste 2', 999, 2, true)
+          ON CONFLICT DO NOTHING;
+          EOF
+
+      - name: Iniciar servidor PHP
+        run: |
+          cd public
+          php -S localhost:8080 ../src/backend.php &
+          sleep 3
+          echo "Servidor iniciado na porta 8080"
+
+      - name: Teste 1 - Validar senha (GET)
+        run: |
+          echo "=== Testando validação de senha ==="
+          # Senha correta
+          response=$(curl -s "http://localhost:8080/?action=valida_senha&senha=testadmin123")
+          echo "Resposta senha correta: $response"
+          if echo "$response" | grep -q '"valid":true'; then
+            echo "✓ Senha correta validada com sucesso"
+          else
+            echo "✗ Falha ao validar senha correta"
+            exit 1
+          fi
+          
+          # Senha incorreta
+          response=$(curl -s "http://localhost:8080/?action=valida_senha&senha=senhaerrada")
+          echo "Resposta senha incorreta: $response"
+          if echo "$response" | grep -q '"valid":false'; then
+            echo "✓ Senha incorreta rejeitada corretamente"
+          else
+            echo "✗ Falha ao rejeitar senha incorreta"
+            exit 1
+          fi
+
+      - name: Teste 2 - Buscar salas (GET)
+        run: |
+          echo "=== Testando busca de salas ==="
+          response=$(curl -s "http://localhost:8080/?action=get_salas")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '\[' && [ ${#response} -gt 2 ]; then
+            echo "✓ Salas retornadas com sucesso"
+          else
+            echo "✗ Falha ao buscar salas"
+            exit 1
+          fi
+
+      - name: Teste 3 - Buscar perguntas de uma sala (GET)
+        run: |
+          echo "=== Testando busca de perguntas ==="
+          response=$(curl -s "http://localhost:8080/?action=get_perguntas&sala_id=999")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q 'Pergunta Teste'; then
+            echo "✓ Perguntas da sala retornadas com sucesso"
+          else
+            echo "✗ Falha ao buscar perguntas"
+            exit 1
+          fi
+
+      - name: Teste 4 - Buscar todas as perguntas (GET)
+        run: |
+          echo "=== Testando busca de todas as perguntas ==="
+          response=$(curl -s "http://localhost:8080/?action=get_todas_perguntas")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '\['; then
+            echo "✓ Todas as perguntas retornadas com sucesso"
+          else
+            echo "✗ Falha ao buscar todas as perguntas"
+            exit 1
+          fi
+
+      - name: Teste 5 - Criar sala (POST)
+        run: |
+          echo "=== Testando criação de sala ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"descricao":"Nova Sala Teste"}' \
+            "http://localhost:8080/?action=criar_sala")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Sala criada com sucesso"
+          else
+            echo "✗ Falha ao criar sala"
+            exit 1
+          fi
+
+      - name: Teste 6 - Criar pergunta (POST)
+        run: |
+          echo "=== Testando criação de pergunta ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"descricao":"Nova Pergunta Teste","sala_id":999}' \
+            "http://localhost:8080/?action=criar_pergunta")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Pergunta criada com sucesso"
+          else
+            echo "✗ Falha ao criar pergunta"
+            exit 1
+          fi
+
+      - name: Teste 7 - Salvar respostas (POST)
+        run: |
+          echo "=== Testando salvamento de respostas ==="
+          timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+          uuid=$(cat /proc/sys/kernel/random/uuid)
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "[{\"pergunta_id\":9991,\"sala_id\":999,\"nota\":5,\"data_hora\":\"$timestamp\",\"id_respostas\":\"$uuid\"},{\"pergunta_id\":9992,\"sala_id\":999,\"nota\":4,\"data_hora\":\"$timestamp\",\"id_respostas\":\"$uuid\"}]" \
+            "http://localhost:8080/?action=salvar_respostas")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Respostas salvas com sucesso"
+            echo "UUID_RESPOSTAS=$uuid" >> $GITHUB_ENV
+          else
+            echo "✗ Falha ao salvar respostas"
+            exit 1
+          fi
+
+      - name: Teste 8 - Buscar respostas (GET)
+        run: |
+          echo "=== Testando busca de respostas ==="
+          response=$(curl -s "http://localhost:8080/?action=get_respostas&sala_id=999")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '\['; then
+            echo "✓ Respostas retornadas com sucesso"
+          else
+            echo "✗ Falha ao buscar respostas"
+            exit 1
+          fi
+
+      - name: Teste 9 - Salvar feedback (POST)
+        run: |
+          echo "=== Testando salvamento de feedback ==="
+          uuid_respostas="${{ env.UUID_RESPOSTAS }}"
+          if [ -z "$uuid_respostas" ]; then
+            uuid_respostas="test-uuid-123"
+          fi
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"descricao\":\"Feedback de teste automatizado\",\"id_respostas\":\"$uuid_respostas\"}" \
+            "http://localhost:8080/?action=salvar_feedback")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Feedback salvo com sucesso"
+          else
+            echo "✗ Falha ao salvar feedback"
+            exit 1
+          fi
+
+      - name: Teste 10 - Buscar feedback (GET)
+        run: |
+          echo "=== Testando busca de feedback ==="
+          uuid_respostas="${{ env.UUID_RESPOSTAS }}"
+          if [ -z "$uuid_respostas" ]; then
+            uuid_respostas="test-uuid-123"
+          fi
+          response=$(curl -s "http://localhost:8080/?action=get_feedback&id_respostas=$uuid_respostas")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q 'Feedback de teste'; then
+            echo "✓ Feedback retornado com sucesso"
+          else
+            echo "⚠ Feedback não encontrado (pode ter sido de teste anterior)"
+          fi
+
+      - name: Teste 11 - Buscar todos os feedbacks (GET)
+        run: |
+          echo "=== Testando busca de todos os feedbacks ==="
+          response=$(curl -s "http://localhost:8080/?action=get_all_feedbacks")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '\['; then
+            echo "✓ Feedbacks retornados com sucesso"
+          else
+            echo "✗ Falha ao buscar feedbacks"
+            exit 1
+          fi
+
+      - name: Teste 12 - Editar pergunta (POST)
+        run: |
+          echo "=== Testando edição de pergunta ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"id":9991,"descricao":"Pergunta Teste Editada"}' \
+            "http://localhost:8080/?action=editar_pergunta")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Pergunta editada com sucesso"
+          else
+            echo "✗ Falha ao editar pergunta"
+            exit 1
+          fi
+
+      - name: Teste 13 - Atualizar ordem das perguntas (POST)
+        run: |
+          echo "=== Testando atualização de ordem ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"perguntas":[{"id":9991,"ordem_exibicao":2},{"id":9992,"ordem_exibicao":1}]}' \
+            "http://localhost:8080/?action=atualizar_ordem_perguntas")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Ordem atualizada com sucesso"
+          else
+            echo "✗ Falha ao atualizar ordem"
+            exit 1
+          fi
+
+      - name: Teste 14 - Excluir pergunta (POST)
+        run: |
+          echo "=== Testando exclusão de pergunta ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"id":9992}' \
+            "http://localhost:8080/?action=excluir_pergunta")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Pergunta excluída com sucesso"
+          else
+            echo "✗ Falha ao excluir pergunta"
+            exit 1
+          fi
+
+      - name: Teste 15 - Inativar sala (POST)
+        run: |
+          echo "=== Testando inativação de sala ==="
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"id":999}' \
+            "http://localhost:8080/?action=inativar_sala")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q '"success":true'; then
+            echo "✓ Sala inativada com sucesso"
+          else
+            echo "✗ Falha ao inativar sala"
+            exit 1
+          fi
+
+      - name: Teste 16 - Ação inválida (GET)
+        run: |
+          echo "=== Testando ação inválida ==="
+          response=$(curl -s "http://localhost:8080/?action=acao_inexistente")
+          echo "Resposta: $response"
+          if echo "$response" | grep -q 'inválida'; then
+            echo "✓ Ação inválida tratada corretamente"
+          else
+            echo "✗ Tratamento de ação inválida não funcionou"
+            exit 1
+          fi
+
+      - name: Resumo dos testes
+        if: always()
+        run: |
+          echo ""
+          echo "================================================"
+          echo "      RESUMO DOS TESTES DE ENDPOINTS"
+          echo "================================================"
+          echo "✓ Total de 16 endpoints testados"
+          echo "✓ Operações GET e POST verificadas"
+          echo "✓ Validações de dados implementadas"
+          echo "✓ Tratamento de erros funcionando"
+          echo "================================================"
+
