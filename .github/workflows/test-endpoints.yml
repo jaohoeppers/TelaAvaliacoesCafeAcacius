@@ -199,10 +199,7 @@ jobs:
       - name: Teste 9 - Salvar feedback (POST)
         run: |
           echo "=== Testando salvamento de feedback ==="
-          uuid_respostas="${{ env.UUID_RESPOSTAS }}"
-          if [ -z "$uuid_respostas" ]; then
-            uuid_respostas="test-uuid-123"
-          fi
+          uuid_respostas="${UUID_RESPOSTAS:-test-uuid-123}"
           response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d "{\"descricao\":\"Feedback de teste automatizado\",\"id_respostas\":\"$uuid_respostas\"}" \
@@ -218,10 +215,7 @@ jobs:
       - name: Teste 10 - Buscar feedback (GET)
         run: |
           echo "=== Testando busca de feedback ==="
-          uuid_respostas="${{ env.UUID_RESPOSTAS }}"
-          if [ -z "$uuid_respostas" ]; then
-            uuid_respostas="test-uuid-123"
-          fi
+          uuid_respostas="${UUID_RESPOSTAS:-test-uuid-123}"
           response=$(curl -s "http://localhost:8080/?action=get_feedback&id_respostas=$uuid_respostas")
           echo "Resposta: $response"
           if echo "$response" | grep -q 'Feedback de teste'; then
