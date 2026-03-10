@@ -74,7 +74,7 @@ jobs:
     - name: Importar dump SQL
       run: |
         echo "Importando dump SQL de sql/dump.sql..."
-        PGPASSWORD=123456 pg_restore -h localhost -U consultas -d avaliacoes --no-owner --no-privileges sql/dump.sql
+        PGPASSWORD=123456 psql -h localhost -U consultas -d avaliacoes -f sql/dump.sql
         if [ $? -eq 0 ]; then
           echo "✅ Dump SQL importado com sucesso!"
         else
