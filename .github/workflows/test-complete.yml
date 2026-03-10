@@ -1,0 +1,79 @@
+name: Testes Completos do Sistema
+description: "Executa todos os testes do sistema na ordem: servidor web → banco de dados → API com banco"
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-server:
+    name: 1. Testar Servidor Web
+    uses: ./.github/workflows/test-server.yml
+  
+  test-database:
+    name: 2. Testar Banco de Dados
+    needs: test-server
+    uses: ./.github/workflows/test-database.yml
+  
+  test-api-with-database:
+    name: 3. Testar API com Banco de Dados
+    needs: test-database
+    uses: ./.github/workflows/test-server-with-database.yml
+  
+  final-summary:
+    name: Resumo Final dos Testes
+    runs-on: ubuntu-latest
+    needs: [test-server, test-database, test-api-with-database]
+    if: always()
+    
+    steps:
+    - name: Verificar status dos testes
+      run: |
+        echo ""
+        echo "=========================================="
+        echo "📊 RESUMO FINAL DOS TESTES DO SISTEMA"
+        echo "=========================================="
+        echo ""
+        
+        # Status do teste do servidor
+        if [ "${{ needs.test-server.result }}" == "success" ]; then
+          echo "✅ 1. Teste do Servidor Web: PASSOU"
+        else
+          echo "❌ 1. Teste do Servidor Web: FALHOU"
+        fi
+        
+        # Status do teste do banco de dados
+        if [ "${{ needs.test-database.result }}" == "success" ]; then
+          echo "✅ 2. Teste do Banco de Dados: PASSOU"
+        else
+          echo "❌ 2. Teste do Banco de Dados: FALHOU"
+        fi
+        
+        # Status do teste da API
+        if [ "${{ needs.test-api-with-database.result }}" == "success" ]; then
+          echo "✅ 3. Teste da API com Banco: PASSOU"
+        else
+          echo "❌ 3. Teste da API com Banco: FALHOU"
+        fi
+        
+        echo ""
+        echo "=========================================="
+        
+        # Verificar se todos passaram
+        if [ "${{ needs.test-server.result }}" == "success" ] && \
+           [ "${{ needs.test-database.result }}" == "success" ] && \
+           [ "${{ needs.test-api-with-database.result }}" == "success" ]; then
+          echo "🎉 TODOS OS TESTES PASSARAM COM SUCESSO! 🎉"
+          echo "=========================================="
+          echo ""
+          echo "O sistema está pronto para produção! 🚀"
+        else
+          echo "⚠️  ALGUNS TESTES FALHARAM"
+          echo "=========================================="
+          echo ""
+          echo "Revise os logs acima para mais detalhes."
+          exit 1
+        fi

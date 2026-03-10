@@ -1,11 +1,10 @@
 name: Test Web Server
+description: "Testa se o servidor PHP está funcionando corretamente e se os endpoints da API estão respondendo como esperado."
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_call:
   workflow_dispatch:
+  
 
 jobs:
   test-server:
@@ -21,7 +20,7 @@ jobs:
         php-version: '7.4'
         extensions: pgsql, pdo_pgsql
     
-    - name: Create config.php for testing
+    - name: Criar config.php para testes
       run: |
         cat > config.php << 'EOF'
         <?php
@@ -35,47 +34,41 @@ jobs:
         ?>
         EOF
     
-    - name: Start PHP Built-in Server
+    - name: Iniciar servidor PHP
       run: |
         cd public
         php -S 0.0.0.0:8080 &
         sleep 3
       continue-on-error: true
     
-    - name: Start PHP Server on port 8080 (fallback)
+    - name: Testar se index.html está acessível (porta 8080)
       run: |
-        cd public
-        php -S 0.0.0.0:8080 &
-        sleep 3
-    
-    - name: Test if index.html is accessible (port 8080)
-      run: |
-        curl -f http://localhost:8080/index.html || echo "Port 8080 not accessible"
+        curl -f http://localhost:8080/index.html || echo "Porta 8080 não acessível"
       continue-on-error: true
     
-    - name: Test if index.html is accessible (port 8080)
+    - name: Verificar acessibilidade do index.html
       run: |
         response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/index.html)
         if [ $response -eq 200 ]; then
-          echo "✅ Success! index.html is accessible on port 8080"
-          echo "HTTP Status Code: $response"
+          echo "✅ Sucesso! index.html está acessível na porta 8080"
+          echo "Código HTTP: $response"
         else
-          echo "❌ Failed! index.html returned status code: $response"
+          echo "❌ Falha! index.html retornou código: $response"
           exit 1
         fi
     
-    - name: Test index.html content
+    - name: Testar conteúdo do index.html
       run: |
         content=$(curl -s http://localhost:8080/index.html)
         if echo "$content" | grep -q "Sistema de Avaliações"; then
-          echo "✅ index.html content verified successfully"
+          echo "✅ Conteúdo do index.html verificado com sucesso"
         else
-          echo "⚠️ Warning: Expected content not found in index.html"
+          echo "⚠️ Aviso: Conteúdo esperado não encontrado no index.html"
         fi
     
-    - name: Show server logs (if any errors)
+    - name: Mostrar logs do servidor (em caso de erro)
       if: failure()
       run: |
-        echo "=== Checking for PHP errors ==="
-        ps aux | grep php || echo "No PHP processes found"
-        netstat -tuln | grep -E '(8080)' || echo "Ports 8080 not listening"
+        echo "=== Verificando erros do PHP ==="
+        ps aux | grep php || echo "Nenhum processo PHP encontrado"
+        netstat -tuln | grep -E '(8080)' || echo "Porta 8080 não está escutando"
