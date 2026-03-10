@@ -1,0 +1,81 @@
+name: Test Web Server
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-server:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: pgsql, pdo_pgsql
+    
+    - name: Create config.php for testing
+      run: |
+        cat > config.php << 'EOF'
+        <?php
+        DEFINE('dbHost', 'localhost');
+        DEFINE('dbPort', 5432);
+        DEFINE('dbName', 'avaliacoes');
+        DEFINE('dbUser', 'consultas');
+        DEFINE('dbPass', '123456');
+        DEFINE('dbschema', 'dados');
+        DEFINE('senhaAdmin', '123');
+        ?>
+        EOF
+    
+    - name: Start PHP Built-in Server
+      run: |
+        cd public
+        php -S 0.0.0.0:80 &
+        sleep 3
+      continue-on-error: true
+    
+    - name: Start PHP Server on port 80 (fallback)
+      run: |
+        cd public
+        php -S 0.0.0.0:80 &
+        sleep 3
+    
+    - name: Test if index.html is accessible (port 80)
+      run: |
+        curl -f http://localhost:80/index.html || echo "Port 80 not accessible"
+      continue-on-error: true
+    
+    - name: Test if index.html is accessible (port 80)
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/index.html)
+        if [ $response -eq 200 ]; then
+          echo "✅ Success! index.html is accessible on port 80"
+          echo "HTTP Status Code: $response"
+        else
+          echo "❌ Failed! index.html returned status code: $response"
+          exit 1
+        fi
+    
+    - name: Test index.html content
+      run: |
+        content=$(curl -s http://localhost:80/index.html)
+        if echo "$content" | grep -q "Sistema de Avaliações"; then
+          echo "✅ index.html content verified successfully"
+        else
+          echo "⚠️ Warning: Expected content not found in index.html"
+        fi
+    
+    - name: Show server logs (if any errors)
+      if: failure()
+      run: |
+        echo "=== Checking for PHP errors ==="
+        ps aux | grep php || echo "No PHP processes found"
+        netstat -tuln | grep -E '(80)' || echo "Ports 80 not listening"
