@@ -30,7 +30,7 @@ jobs:
       - name: Generate Onefetch SVG
         run: |
           # Gera o SVG com fundo transparente e sem controles de janela
-          onefetch --image none | freeze --language text --theme "none" --background "0" --output stats.svg
+          onefetch | freeze --language text --theme "none" --background "0" --output stats.svg
 
       - name: Update README.md
         run: |
