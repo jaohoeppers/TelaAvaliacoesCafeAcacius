@@ -3,10 +3,8 @@ description: Gera uma imagem contendo as informações do projeto e adiciona ela
 
 on:
   push:
-    branches:
-      - main  # Ou a sua branch padrão
-  workflow_dispatch: # Permite rodar manualmente
-
+      workflow_call:
+      workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
