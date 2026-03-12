@@ -31,7 +31,7 @@ jobs:
         run: |
           # Gera o SVG com fundo transparente e sem controles de janela
 
-onefetch | freeze --language text --theme "none" --output stats.svg
+          onefetch | freeze --language text --theme "none" --output stats.svg
 
       - name: Update README.md
         run: |
