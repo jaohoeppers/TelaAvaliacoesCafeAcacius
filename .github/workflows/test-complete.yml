@@ -2,10 +2,10 @@ name: Testes Completos do Sistema
 description: "Executa todos os testes do sistema na ordem: servidor web → banco de dados → API com banco"
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+#   push:
+#     branches: [ main, master ]
+#   pull_request:
+#     branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
