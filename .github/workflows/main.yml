@@ -1,0 +1,55 @@
+name: Update Project Stats Image
+description: Gera uma imagem contendo as informações do projeto e adiciona ela no .md
+
+on:
+  push:
+    branches:
+      - main  # Ou a sua branch padrão
+  workflow_dispatch: # Permite rodar manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Onefetch
+        run: |
+          sudo add-apt-repository ppa:o2sh/onefetch -y
+          sudo apt-get update
+          sudo apt-get install onefetch
+
+      - name: Install Freeze (via Go)
+        run: |
+          go install github.com/charmbracelet/freeze@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate Onefetch SVG
+        run: |
+          # Gera o SVG com fundo transparente e sem controles de janela
+          onefetch --image none | freeze --language text --theme "none" --background "0" --output stats.svg
+
+      - name: Update README.md
+        run: |
+          FILE="README.md"
+          IMAGE_TAG="![Project Stats](stats.svg)"
+          
+          # Verifica se a tag da imagem já existe no arquivo
+          if grep -q "stats.svg" "$FILE"; then
+            echo "A imagem já está no README. No commit ela será atualizada automaticamente."
+          else
+            # Se não existir, insere no topo do arquivo
+            echo -e "$IMAGE_TAG\n\n$(cat $FILE)" > $FILE
+            echo "Imagem inserida no topo do README."
+          fi
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add stats.svg README.md
+          git commit -m "docs: update project statistics image" || exit 0
+          git push
