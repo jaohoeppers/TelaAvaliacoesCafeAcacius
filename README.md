@@ -1,3 +1,5 @@
+![Project Stats](stats.svg)
+
 # Sistema de Avaliações de Café
 
 Sistema web para gerenciamento e realização de avaliações do café.
