@@ -2,9 +2,9 @@ name: Update Project Stats Image
 description: Gera uma imagem contendo as informações do projeto e adiciona ela no .md
 
 on:
-  push:
       workflow_call:
       workflow_dispatch:
+      push: 
 jobs:
   build:
     runs-on: ubuntu-latest
