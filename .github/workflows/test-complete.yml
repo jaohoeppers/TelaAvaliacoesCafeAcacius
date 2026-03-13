@@ -2,10 +2,10 @@ name: Testes Completos do Sistema
 description: "Executa todos os testes do sistema na ordem: servidor web → banco de dados → API com banco"
 
 on:
-#   push:
-#     branches: [ main, master ]
-#   pull_request:
-#     branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/test-server-with-database.yml
   
   final-summary:
-    name: Resumo Final dos Testes
+    name: 4. Resumo Final dos Testes
     runs-on: ubuntu-latest
     needs: [test-server, test-database, test-api-with-database]
     if: always()
@@ -76,4 +76,9 @@ jobs:
           echo ""
           echo "Revise os logs acima para mais detalhes."
           exit 1
-        fi
+        final
+
+  create-image:
+    name: 5. Criar e adicionar imagem no Readme
+    needs: final-summary
+    uses: ./.github/workflows/main.yml
