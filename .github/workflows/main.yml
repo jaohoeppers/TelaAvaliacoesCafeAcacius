@@ -4,7 +4,7 @@ description: Gera uma imagem contendo as informações do projeto e adiciona ela
 on:
       workflow_call:
       workflow_dispatch:
-      push: 
+      
 jobs:
   build:
     runs-on: ubuntu-latest
