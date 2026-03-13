@@ -76,7 +76,7 @@ jobs:
           echo ""
           echo "Revise os logs acima para mais detalhes."
           exit 1
-        final
+        fi
 
   create-image:
     name: 5. Criar e adicionar imagem no Readme
