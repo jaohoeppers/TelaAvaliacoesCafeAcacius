@@ -1,7 +1,7 @@
 <?php
 
     // Busca as variaveis de configuração para conexão com o banco de dados
-    require_once '../config.php';
+    require_once __DIR__ . '/config.php';
 
     class conexao{
 

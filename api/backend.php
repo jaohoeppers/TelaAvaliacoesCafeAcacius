@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Realiza a importação dos arquivos de conexão com o banco de dados
-require_once '../conexao.php';
+require_once __DIR__ . '/../conexao.php';
 
 // Cria uma instância da conexão com o banco de dados
 $conexao = (new conexao())->getConexao();
