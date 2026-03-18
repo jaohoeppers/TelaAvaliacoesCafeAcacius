@@ -19,7 +19,7 @@ if(document.getElementById('form_avaliacao') != null){
 
 export function get_salas(){
     try{
-        fetch(`${http}/src/backend.php?action=get_salas`)
+        fetch(`${http}/api/backend.php?action=get_salas`)
             .then(response => response.json())
             .then(data => {
                 var opcoes = document.getElementById('salas');
@@ -50,7 +50,7 @@ export function gerar_tela_perguntas(){
 }
 
 export function carregar_perguntas(salaId) {
-    fetch(`${http}/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+    fetch(`${http}/api/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(data => {
             const listaPerguntas = document.getElementById('perguntas');
@@ -182,14 +182,14 @@ export  async function salvar_respostas() {
     var statusFeedback = "";
 
     try {
-        await fetch(`${http}/src/backend.php?action=salvar_respostas`, {
+        await fetch(`${http}/api/backend.php?action=salvar_respostas`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(jsonRespostas)
         }).then(response => response.status === 200 ? statusRespostas = response.json() : null);
 
         if (feedbackDescricao != "") {
-            await fetch(`${http}/src/backend.php?action=salvar_feedback`, {
+            await fetch(`${http}/api/backend.php?action=salvar_feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ descricao: feedbackDescricao, id_respostas: idGerado })

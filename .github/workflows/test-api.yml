@@ -43,7 +43,7 @@ jobs:
     - name: Testar Endpoint - Validar Senha Admin
       run: |
         echo "Testando: Validação de senha do administrador"
-        response=$(curl -s "http://localhost:8080/src/backend.php?action=valida_senha&senha=123")
+        response=$(curl -s "http://localhost:8080/api/backend.php?action=valida_senha&senha=123")
         echo "Resposta: $response"
         if echo "$response" | grep -q '"valid":true'; then
           echo "✅ Teste PASSOU"
@@ -55,7 +55,7 @@ jobs:
     - name: Testar Endpoint - Obter Salas
       run: |
         echo "Testando: Obter Salas"
-        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_salas")
+        response=$(curl -s "http://localhost:8080/api/backend.php?action=get_salas")
         echo "Resposta: $response"
         if echo "$response" | grep -qE '\[.*\]'; then
           echo "✅ Teste PASSOU"
@@ -67,7 +67,7 @@ jobs:
     - name: Testar Endpoint - Obter Todas as Perguntas
       run: |
         echo "Testando: Obter Todas as Perguntas"
-        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_todas_perguntas")
+        response=$(curl -s "http://localhost:8080/api/backend.php?action=get_todas_perguntas")
         echo "Resposta: $response"
         if echo "$response" | grep -qE '\[.*\]'; then
           echo "✅ Teste PASSOU"
@@ -79,7 +79,7 @@ jobs:
     - name: Testar Endpoint - Obter Respostas
       run: |
         echo "Testando: Obter Respostas"
-        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_respostas")
+        response=$(curl -s "http://localhost:8080/api/backend.php?action=get_respostas")
         echo "Resposta: $response"
         # Pode estar vazio [], mas tem que ser valid JSON array
         if echo "$response" | grep -qE '\[.*\]'; then
