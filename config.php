@@ -12,7 +12,8 @@ if (file_exists($envFile)) {
         if (strpos($linha, '=') !== false) {
             list($nome, $valor) = explode('=', $linha, 2);
             $nome = trim($nome);
-            $valor = trim($valor);
+            // Remove espaços e aspas (simples ou duplas) da ponta
+            $valor = trim($valor, " \t\n\r\0\x0B\"'");
             
             // Só define se a variável ainda não existir no ambiente
             if (!array_key_exists($nome, $_SERVER) && !array_key_exists($nome, $_ENV)) {

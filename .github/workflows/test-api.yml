@@ -28,12 +28,12 @@ jobs:
         DB_PORT=6543
         DB_NAME=postgres
         DB_USER=${{ secrets.SUPABASE_USER }}
-        DB_PASS="${{ secrets.SUPABASE_PASS }}"
+        DB_PASS=${{ secrets.SUPABASE_PASS }}
         DB_SCHEMA=dados
         SENHA_ADMIN=${{ secrets.SENHA_ADMIN }}
         EOF
         echo "✅ Arquivo .env criado com credenciais remotas"
-        
+
     - name: Iniciar servidor PHP
       run: |
         php -S 0.0.0.0:8080 -t . &
