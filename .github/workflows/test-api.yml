@@ -21,12 +21,20 @@ jobs:
         php-version: '7.4'
         extensions: pgsql, pdo_pgsql
 
+    - name: Criar arquivo .env
+      run: |
+        cat > .env << 'EOF'
+        DB_HOST=${{ secrets.SUPABASE_HOST }}
+        DB_PORT=6543
+        DB_NAME=postgres
+        DB_USER=${{ secrets.SUPABASE_USER }}
+        DB_PASS=${{ secrets.SUPABASE_PASS }}
+        DB_SCHEMA=dados
+        SENHA_ADMIN=${{ secrets.SENHA_ADMIN }}
+        EOF
+        echo "✅ Arquivo .env criado com credenciais remotas"
+
     - name: Iniciar servidor PHP
-      env:
-        DB_HOST: ${{ secrets.SUPABASE_HOST }}
-        DB_USER: ${{ secrets.SUPABASE_USER }}
-        DB_PASS: ${{ secrets.SUPABASE_PASS }}
-        SENHA_ADMIN: ${{ secrets.SENHA_ADMIN }}
       run: |
         php -S 0.0.0.0:8080 -t . &
         sleep 3
