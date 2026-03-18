@@ -21,6 +21,14 @@ jobs:
         php-version: '7.4'
         extensions: pgsql, pdo_pgsql
 
+    - name: DEBUG - Dump ENV Secrets encoding
+      run: |
+        echo "Validando tamanho e formatação dos SEGREDOS sem expor em texto plano:"
+        echo "DB_USER base64:"
+        echo -n "${{ secrets.SUPABASE_USER }}" | base64
+        echo "DB_PASS base64:"
+        echo -n "${{ secrets.SUPABASE_PASS }}" | base64
+
     - name: Criar arquivo .env
       run: |
         cat > .env << 'EOF'
@@ -28,11 +36,24 @@ jobs:
         DB_PORT=6543
         DB_NAME=postgres
         DB_USER=${{ secrets.SUPABASE_USER }}
-        DB_PASS=${{ secrets.SUPABASE_PASS }}
+        DB_PASS="${{ secrets.SUPABASE_PASS }}"
         DB_SCHEMA=dados
         SENHA_ADMIN=${{ secrets.SENHA_ADMIN }}
         EOF
         echo "✅ Arquivo .env criado com credenciais remotas"
+
+    - name: DEBUG - Como o PHP lê o ENV gerado
+      run: |
+        php -r "
+          \$linhas = file('.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+          foreach (\$linhas as \$linha) {
+            list(\$nome, \$valor) = explode('=', \$linha, 2);
+            echo trim(\$nome) . ' length é ' . strlen(trim(\$valor)) . PHP_EOL;
+            if(trim(\$nome) === 'DB_USER') {
+                echo 'O USUARIO LIDO FOI (base64): ' . base64_encode(trim(\$valor)) . PHP_EOL;
+            }
+          }
+        "
 
     - name: Iniciar servidor PHP
       run: |
