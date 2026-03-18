@@ -21,22 +21,12 @@ jobs:
         php-version: '7.4'
         extensions: pgsql, pdo_pgsql
 
-    - name: Criar config.php
-      run: |
-        cat > config.php << 'EOF'
-        <?php
-        DEFINE('dbHost', '${{ secrets.SUPABASE_HOST }}');
-        DEFINE('dbPort', 6543);
-        DEFINE('dbName', 'postgres');
-        DEFINE('dbUser', '${{ secrets.SUPABASE_USER }}');
-        DEFINE('dbPass', '${{ secrets.SUPABASE_PASS }}');
-        DEFINE('dbschema', 'dados');
-        DEFINE('senhaAdmin', '${{ secrets.SENHA_ADMIN }}');
-        ?>
-        EOF
-        echo "✅ config.php criado com credenciais remotas"
-
     - name: Iniciar servidor PHP
+      env:
+        DB_HOST: ${{ secrets.SUPABASE_HOST }}
+        DB_USER: ${{ secrets.SUPABASE_USER }}
+        DB_PASS: ${{ secrets.SUPABASE_PASS }}
+        SENHA_ADMIN: ${{ secrets.SENHA_ADMIN }}
       run: |
         php -S 0.0.0.0:8080 -t . &
         sleep 3
