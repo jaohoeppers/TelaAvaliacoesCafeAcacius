@@ -11,8 +11,9 @@
         function __construct(){
             try {
                 // Adicionado sslmode=require para funcionamento no Supabase
-                $dadosConexao = "pgsql:host=" . dbHost . ";port=" . dbPort . ";dbname=" . dbName . ";sslmode=require;";
-                $this->conexao = new PDO($dadosConexao, dbUser, dbPass, [
+                // Credenciais passadas DENTRO da DSN para evitar bugs do driver PDO_pgsql antigo
+                $dadosConexao = "pgsql:host=" . dbHost . ";port=" . dbPort . ";dbname=" . dbName . ";user=" . dbUser . ";password=" . dbPass . ";sslmode=require;";
+                $this->conexao = new PDO($dadosConexao, null, null, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES => false,
