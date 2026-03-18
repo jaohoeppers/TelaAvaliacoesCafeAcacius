@@ -10,7 +10,8 @@
         // Construtor da classe de conexão
         function __construct(){
             try {
-                $dadosConexao = "pgsql:host=" . dbHost . ";port=" . dbPort . ";dbname=" . dbName . ";";
+                // Adicionado sslmode=require para funcionamento no Supabase
+                $dadosConexao = "pgsql:host=" . dbHost . ";port=" . dbPort . ";dbname=" . dbName . ";sslmode=require;";
                 $this->conexao = new PDO($dadosConexao, dbUser, dbPass, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

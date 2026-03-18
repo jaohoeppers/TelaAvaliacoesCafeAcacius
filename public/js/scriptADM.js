@@ -50,7 +50,7 @@ export function validar_senha() {
 
     const senha = document.getElementById('admin_password').value;
 
-    fetch( `${http}/progavaliacoescafe/src/backend.php?action=valida_senha&senha=` + encodeURIComponent(senha))
+    fetch( `${http}/src/backend.php?action=valida_senha&senha=` + encodeURIComponent(senha))
         .then(response => response.json())
         .then(data => {
             if (data.valid) {
@@ -162,3 +162,4 @@ window.salvarEstadoTela = salvarEstadoTela;
 window.restaurarEstadoTela = restaurarEstadoTela;
 window.limparSessao = limparSessao;
 window.logout = logout;
+

@@ -1,0 +1,99 @@
+name: Test API with Remote Database
+description: "Testa os endpoints da API conectando ao banco de dados Supabase."
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: pgsql, pdo_pgsql
+
+    - name: Criar config.php
+      run: |
+        cat > config.php << 'EOF'
+        <?php
+        DEFINE('dbHost', '${{ secrets.SUPABASE_HOST }}');
+        DEFINE('dbPort', 6543);
+        DEFINE('dbName', 'postgres');
+        DEFINE('dbUser', '${{ secrets.SUPABASE_USER }}');
+        DEFINE('dbPass', '${{ secrets.SUPABASE_PASS }}');
+        DEFINE('dbschema', 'dados');
+        DEFINE('senhaAdmin', '123');
+        ?>
+        EOF
+        echo "✅ config.php criado com credenciais remotas"
+
+    - name: Iniciar servidor PHP
+      run: |
+        php -S 0.0.0.0:8080 -t . &
+        sleep 3
+        echo "✅ Servidor PHP iniciado na porta 8080"
+
+    - name: Testar Endpoint - Validar Senha Admin
+      run: |
+        echo "Testando: Validação de senha do administrador"
+        response=$(curl -s "http://localhost:8080/src/backend.php?action=valida_senha&senha=123")
+        echo "Resposta: $response"
+        if echo "$response" | grep -q '"valid":true'; then
+          echo "✅ Teste PASSOU"
+        else
+          echo "❌ Teste FALHOU"
+          exit 1
+        fi
+
+    - name: Testar Endpoint - Obter Salas
+      run: |
+        echo "Testando: Obter Salas"
+        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_salas")
+        echo "Resposta: $response"
+        if echo "$response" | grep -qE '\[.*\]'; then
+          echo "✅ Teste PASSOU"
+        else
+          echo "❌ Teste FALHOU"
+          exit 1
+        fi
+
+    - name: Testar Endpoint - Obter Todas as Perguntas
+      run: |
+        echo "Testando: Obter Todas as Perguntas"
+        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_todas_perguntas")
+        echo "Resposta: $response"
+        if echo "$response" | grep -qE '\[.*\]'; then
+          echo "✅ Teste PASSOU"
+        else
+          echo "❌ Teste FALHOU"
+          exit 1
+        fi
+
+    - name: Testar Endpoint - Obter Respostas
+      run: |
+        echo "Testando: Obter Respostas"
+        response=$(curl -s "http://localhost:8080/src/backend.php?action=get_respostas")
+        echo "Resposta: $response"
+        # Pode estar vazio [], mas tem que ser valid JSON array
+        if echo "$response" | grep -qE '\[.*\]'; then
+          echo "✅ Teste PASSOU"
+        else
+          echo "❌ Teste FALHOU"
+          exit 1
+        fi
+
+    - name: Resumo
+      if: success()
+      run: |
+        echo "========================================="
+        echo "✅ TODOS OS TESTES PASSARAM COM SUCESSO! ✅"
+        echo "========================================="

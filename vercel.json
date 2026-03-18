@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "src/**/*.php": {
+      "runtime": "vercel-php@0.6.2"
+    }
+  },
+  "rewrites": [
+    { "source": "/src/(.*)", "destination": "/src/$1" },
+    { "source": "/(.*)", "destination": "/public/$1" }
+  ]
+}

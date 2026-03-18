@@ -55,9 +55,9 @@ export async function carregarEstatisticasGerais() {
     
     // Busca todas as respostas, salas e feedbacks
     Promise.all([
-        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas`).then(r => r.json()),
-        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`).then(r => r.json()),
-        fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_all_feedbacks`).then(r => r.json())
+        fetch(`${http}/src/backend.php?action=get_respostas`).then(r => r.json()),
+        fetch(`${http}/src/backend.php?action=get_salas`).then(r => r.json()),
+        fetch(`${http}/src/backend.php?action=get_all_feedbacks`).then(r => r.json())
     ])
     .then(([respostasJson, salasJson, feedbacksJson]) => {
         // Converte JSON para objetos usando fromJson
@@ -262,7 +262,7 @@ export function gerarTelaSalas() {
     mainContent.innerHTML = '<h2>Gestão de Salas</h2>';
     
     // Busca todas as salas
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_salas`)
+    fetch(`${http}/src/backend.php?action=get_salas`)
         .then(response => response.json())
         .then(salasJson => {
             // Converte JSON para objetos usando fromJson
@@ -366,7 +366,7 @@ export function abrirDetalhesSala(salaId, salaNome) {
 
 // Função para carregar as perguntas de uma sala
 export function carregarPerguntasDaSala(salaId) {
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+    fetch(`${http}/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(perguntasJson => {
             // Converte JSON para objetos usando fromJson
@@ -530,7 +530,7 @@ export function criarNovaSala() {
         return;
     }
     
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=criar_sala`, {
+    fetch(`${http}/src/backend.php?action=criar_sala`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -562,7 +562,7 @@ export function inativarSala(salaId, salaNome) {
         return;
     }
     
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=inativar_sala`, {
+    fetch(`${http}/src/backend.php?action=inativar_sala`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -593,7 +593,7 @@ export function inativarSala(salaId, salaNome) {
 
 // Função para carregar as estatísticas de uma sala específica
 export function carregarEstatisticasDaSala(salaId) {
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
+    fetch(`${http}/src/backend.php?action=get_perguntas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(perguntasJson => {
             // Converte JSON para objetos usando fromJson
@@ -647,7 +647,7 @@ export function abrirGraficoPergunta(perguntaId, perguntaDescricao) {
     const dataFinal = document.getElementById('dataFinal')?.value;
     
     // Busca as respostas da pergunta
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas_por_pergunta&pergunta_id=${perguntaId}`)
+    fetch(`${http}/src/backend.php?action=get_respostas_por_pergunta&pergunta_id=${perguntaId}`)
         .then(response => response.json())
         .then(respostasJson => {
             // Converte JSON para objetos usando fromJson
@@ -845,7 +845,7 @@ export function fecharOverlayGrafico() {
 
 // Função para carregar as avaliações de uma sala específica
 export function carregarAvaliacoesDaSala(salaId) {
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_respostas&sala_id=${salaId}`)
+    fetch(`${http}/src/backend.php?action=get_respostas&sala_id=${salaId}`)
         .then(response => response.json())
         .then(respostasJson => {
             // Converte JSON para objetos usando fromJson
@@ -944,7 +944,7 @@ export function getCorPorMedia(media) {
 // Função para exibir os detalhes de uma avaliação
 export function abrirDetalhesAvaliacao(idAvaliacao, numeroAvaliacao, respostas, media) {
     // Busca o feedback se existir
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=get_feedback&id_respostas=${idAvaliacao}`)
+    fetch(`${http}/src/backend.php?action=get_feedback&id_respostas=${idAvaliacao}`)
         .then(response => response.json())
         .then(feedbackJson => {
             // Converte JSON para objeto usando fromJson
@@ -1131,7 +1131,7 @@ export function salvarEdicaoPergunta(perguntaId) {
         return;
     }
     
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=editar_pergunta`, {
+    fetch(`${http}/src/backend.php?action=editar_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1164,7 +1164,7 @@ export function excluirPergunta(perguntaId) {
         return;
     }
     
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=excluir_pergunta`, {
+    fetch(`${http}/src/backend.php?action=excluir_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1228,7 +1228,7 @@ export function criarNovaPergunta(salaId) {
         return;
     }
     
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=criar_pergunta`, {
+    fetch(`${http}/src/backend.php?action=criar_pergunta`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1376,7 +1376,7 @@ export function salvarOrdemPerguntas(salaId) {
     }
     
     // Envia para o backend
-    fetch(`${http}/progavaliacoescafe/src/backend.php?action=atualizar_ordem_perguntas`, {
+    fetch(`${http}/src/backend.php?action=atualizar_ordem_perguntas`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
