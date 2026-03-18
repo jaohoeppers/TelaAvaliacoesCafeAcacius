@@ -31,7 +31,7 @@ jobs:
         DEFINE('dbUser', '${{ secrets.SUPABASE_USER }}');
         DEFINE('dbPass', '${{ secrets.SUPABASE_PASS }}');
         DEFINE('dbschema', 'dados');
-        DEFINE('senhaAdmin', '123');
+        DEFINE('senhaAdmin', '${{ secrets.SENHA_ADMIN }}');
         ?>
         EOF
         echo "✅ config.php criado com credenciais remotas"
