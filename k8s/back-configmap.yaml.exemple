@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: back-config
+  namespace: back-sist-cafe
+data:
+  DB_HOST: ""
+  DB_PORT: ""
+  DB_NAME: ""
+  DB_SCHEMA: ""

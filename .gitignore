@@ -1,0 +1,3 @@
+/k8s/back-secret.yaml
+/k8s/back-configmap.yaml
+/k8s/front-configmap.yaml

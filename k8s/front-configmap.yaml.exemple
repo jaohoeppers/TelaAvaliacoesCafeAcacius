@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: front-config
+  namespace: front-sist-cafe
+data:
+  config.runtime.js: |
+    window.__APP_CONFIG__ = {
+        apiBase: ""
+    };

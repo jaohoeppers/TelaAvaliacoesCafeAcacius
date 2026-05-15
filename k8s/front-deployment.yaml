@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-app
+  namespace: front-sist-cafe
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: front-app
+  template:
+    metadata:
+      labels:
+        app: front-app
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: front-app
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: front-app
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: front-app
+          image: joaounidavi/imagem-front-sistema-cafeacacius:v1.0.0
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: front-runtime-config
+              mountPath: /var/www/html/config.runtime.js
+              subPath: config.runtime.js
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+      volumes:
+        - name: front-runtime-config
+          configMap:
+            name: front-config
+            items:
+              - key: config.runtime.js
+                path: config.runtime.js
